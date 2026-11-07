@@ -1,0 +1,16 @@
+__pycache__/
+*.o
+*.exe
+asm_c
+asm_c_asan
+asm_rust
+asm_go
+results/
+
+# challenge-documents: keep only the working images listed in WORKQUEUE.md §I.
+# Everything else is a scratch transcription crop (regenerable; deleted in W7).
+challenge-documents/*.png
+!challenge-documents/page_18.png
+!challenge-documents/page_18_hi.png
+!challenge-documents/figure5_full.png
+!challenge-documents/fig5_grid.png
