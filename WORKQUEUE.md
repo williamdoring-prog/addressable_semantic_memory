@@ -17,13 +17,22 @@ New work: feed a real document challenge (NOAA report + Figure 5 map
 transcription) and measure retrieval adequacy across a **range of small context
 windows** (budget sweep — user requirement, in progress).
 
-Status of the two work streams:
+Status (after 2026-11-07 session; see queue for details):
 
-1. **Figure 5 transcription** — draft JSON exists with `_flag` notes. A validator
-   script exists and currently reports 9 failures. Root cause of most: several
-   labels were not yet transcribed (found later in the source image). Remaining
-   unknowns are narrow digit/year questions, see item W1.
-2. **Challenge harness** — not started. Items W2..W6 below.
+USER DIRECTIVE (2026-11-07): stop processing the challenge document/PDF for
+transcription purposes. Build the benchmark that tests local models with the
+question prompt and the criteria. Figure 5 digit work is deferred; the
+existing draft event list ships as a PROVISIONAL fixture.
+
+1. **Figure 5 transcription (W1)** — DEFERRED by directive. The draft JSON
+   with `_flag` notes is the fixture source as-is; `validate_events.py`
+   intentionally still exits 1 (known-fail list in §V). Do NOT resume digit
+   work unless the directive is lifted.
+2. **Challenge harness (W2..W6)** — DONE. mk_fixture.py -> fixture; four
+   parameterized mains (toy fallback intact); challenge.py budget sweep
+   (150/300/600/1200/2400 words) with cross-impl MATCH at every budget;
+   prompt files + criteria checklist for local-model testing; deterministic
+   adequacy checker. See §V for the snapshot and W6 notes for findings.
 
 Ground rules a resumed agent must not violate: see §R (rules) and §X (do-not).
 If unsure which item you were working on: re-run §V (verification) commands and
@@ -47,10 +56,14 @@ continue at the first `todo`.
 ## §I File inventory
 
 - Core impls (all verified MATCH on toy sample): `asm.py`, `asm_c.c`+`asm_c.h`+`asm_c_main.c`,
-  `asm.rs`+`asm_main.rs`, `asm.go`+`asm_main.go`, runner `benchmark.py`, `README.md`,
+  `asm.rs`+`asm_main.rs`, `asm.go`+`asm_main.go`, runner `benchmark.py`,
+  challenge harness `challenge.py`, `check_challenge.py`, CLI entry
+  `asm_main.py` (2026-11-07), `README.md`,
   `ASM_DESIGN.md` (design spec for the real system; reviewed 2026-11-07, see W7),
   `.gitignore`.
-  NOTE: mains currently embed the toy sample (no args). W4 changes this.
+  Mains take argv[1]=input file, argv[2]=budget (W4); no args = embedded toy.
+  Generated (hash-stable, rerun mk_fixture.py to refresh): `asm_fixture.json`,
+  `asm_input.txt`. Results artifacts (committed): `results/`.
 - Challenge dir `challenge-documents/`:
   - ORACLES (never modify): `challenge.txt` (question + 5 criteria),
     `noaaTechnicalReport.pdf`/`noaTechnicalReport.txt` (source doc; fig5 caption at
@@ -70,13 +83,22 @@ continue at the first `todo`.
 - [x] Toy parity (must ALWAYS stay green):
       command: `python benchmark.py`
       pass criteria: Python/C/Rust/Go all `MATCH`, no ERROR rows.
-- [x] Transcription validator:
+- [x] Transcription validator (INTENTIONALLY failing after the 2026-11-07
+      user directive; W1 deferred — do not "fix" without a new directive):
       command: `python challenge-documents\validate_events.py`
-      state at last handoff (2026-11-07, pre-W1): exits 1 with these FAIL rows:
-      1983 73.3 vs 49.2; 1985 100.0 vs 70.1; 1999 56.1 vs 60.7; 2005 98.8 vs 99.4;
-      2008 2.5 vs 58.6; "0% years with no events: 1981, 1984, 1987"; count 100 != 99.
-      Already OK (exact): 1989, 1991, 1992, 1995, 1996, 1998, 2003; 2004 = 100.0.
-      W1 success = validator exits 0: 13/13 percentages + 18/18 zero-years + count = 99.
+      state: exits 1, same known-fail list as before (1983/1985/1999/2005
+      percentages, 2008, zero-years 1981/1984/1987 coverage, count 100 != 99).
+- [x] Challenge sweep + adequacy:
+      command: `python challenge.py --budgets 150,300,600,1200,2400`
+      then `python check_challenge.py`
+      state at handoff (2026-11-07, final): cross-impl MATCH x4 at every
+      budget; adequacy: C1 PASS all budgets; C2 grows 2/18 -> 9/18
+      (150 -> 2400 words); C3 FAIL (prose chunks carry years outside
+      1980-2010, e.g. climate-normal periods); C4 0/13 at every budget —
+      no structured figure5/* unit is ever selected because its match
+      vocabulary (hurricane/cost/billion, score 2-3) loses to prose chunks
+      (score 5-7). This is the headline finding and the motivation for the
+      ASM_DESIGN amendments queued in W7 (candidate-listing layer).
 
 ## §R Locked decisions (do NOT re-derive or re-decide)
 
@@ -147,7 +169,7 @@ Open questions (decided by digit-level crops only, never by outside inference):
 ## The Queue
 
 ### W1  Lock Figure 5 transcription
-status: in_progress
+status: deferred (user directive 2026-11-07 — no PDF/digit processing)
 depends: nothing
 inputs: gt_*.png tiles + figure5_full.png; `figure5_events_draft.json`
 steps:
@@ -172,8 +194,12 @@ steps:
 done-check: validator exits 0; `figure5_events.json` + `oracle-notes.md` exist.
 
 ### W2  Build ASM fixture from report text + Figure 5 events
-status: todo
-depends: W1
+status: done 2026-11-07 (`challenge-documents/mk_fixture.py`; outputs
+`asm_fixture.json` + `asm_input.txt`, rerun hash-stable; 550 units,
+28,177 words). AMENDMENT vs original spec: the challenge question is NOT a
+memory unit (it echoes into context at score 39) — it stays in asm_input.txt
+line 1 only; see mk_fixture.py docstring.
+depends: (W1 deferred by directive — draft events used as-is)
 Create `challenge-documents/mk_fixture.py`:
   1. Chunk `noaTechnicalReport.txt`: split on blank lines; merge blocks to ~55-80
      whitespace-words; ids `doc/chunk/0001`...
@@ -188,7 +214,9 @@ done-check: running twice yields identical bytes (hash compare); report unit cou
   and total words.
 
 ### W3  Budget sweep design (user requirement: range of small context windows)
-status: todo
+status: done 2026-11-07 (anchors 150/300/600/1200/2400 implemented in
+challenge.py; per-(impl,budget) context hash/counts/timing recorded in
+results/challenge_results.json)
 depends: W2
 Sweep anchors: 150, 300, 600, 1200, 2400 words. 150 forces severe selection
 pressure (Figure 5 events must compete); 2400 admits most of the document.
@@ -196,7 +224,11 @@ Record per (impl, budget): context hash, context_words, retrieved count, selecte
 count, internal_ns, process_ns, cross-impl MATCH. Lives in the runner (W5).
 
 ### W4  Parameterize the four mains (fixture input + budget CLI)
-status: todo
+status: done 2026-11-07 (`asm_main.py` added; file modes added to
+asm_c_main.c / asm_main.rs / asm_main.go: argv[1]=input, argv[2]=budget
+optional, line-2 default; parse OUTSIDE timed section; toy fallback byte-
+identical — `python benchmark.py` remains 4/4 MATCH; file-mode smoke test
+Python/C/Rust/Go all MATCH at budgets 150 and 600)
 depends: W2
 LINE FORMAT (locked; no JSON parsing needed in C):
   `asm_input.txt` line 1 = question (single line, literal `\t`/`\n` escapes);
@@ -210,7 +242,12 @@ and a fixture-input smoke test where each compiled impl run with
 `asm_input.txt <budget>` yields identical results to asm.py on the same input.
 
 ### W5  Challenge runner
-status: todo
+status: done 2026-11-07 (`challenge.py`; per-budget cross-impl MATCH asserts,
+results/challenge_results.json + per-budget console table). USER-DIRECTIVE
+ADDITION: writes `results/prompt_budget_<B>.txt` (question + bounded
+context for testing local models directly — feed a prompt file to a local
+model, score the response with `results/criteria_checklist.md`, which holds
+the five criteria verbatim) and no LLM is invoked by the harness.
 depends: W3, W4
 New `challenge.py`:
   1. Reuse benchmark.py build().
@@ -223,7 +260,14 @@ done-check: `python challenge.py --budgets 150,300,600,1200,2400` completes; all
   impls match at every budget; artifacts written.
 
 ### W6  Retrieval-adequacy checker
-status: todo
+status: done 2026-11-07 (`check_challenge.py`; emits
+results/challenge_adequacy.json + .md). Verified from challenge_results.json
+only, no rerun. FINDINGS (see §V): C1 PASS everywhere; C2 grows with budget
+(2/18 -> 9/18); C3 FAIL — generic prose chunk years (1870-1960 normals,
+2011-2050 scenario horizons) enter context; C4 0/13 — flat term-overlap
+scoring never selects figure5/* units (their 2-3 matching terms lose to
+prose chunks with 5-7). Improving C4 needs the ASM_DESIGN candidate-listing
+layer (W7 amendments), not a harness change.
 depends: W5
 New `check_challenge.py` (reads challenge_results.json; no re-run needed). Parse
 challenge.txt criteria; per (impl, budget) verdicts:
@@ -241,14 +285,18 @@ Emit `results/challenge_adequacy.json` + per-budget markdown table.
 done-check: runs from existing results; prints per-impl adequacy summary.
 
 ### W7  Final consistency pass
-status: todo (partially done: WORKQUEUE.md created; git initialized 2026-11-07)
+status: partially done 2026-11-07 (README challenge-harness section added;
+WORKQUEUE statuses updated; harness committed+pushed. Remaining:
+ASM_DESIGN.md review amendments + scratch-crop cleanup)
 depends: W6
- 1. README: challenge-harness section (budget sweep usage, adequacy semantics,
-    word-count disclaimer). ASM_DESIGN.md: append the three review amendments
-    (candidate-listing layer; listing token-list cap; `fits_budget` field in §6.3)
-    marked "Added in review, 2026-11-07" — do not rewrite the file.
- 2. Scratch-crop cleanup per §I; keep the tile-read log in oracle-notes.md.
- 3. Full §V green both commands; update statuses in this file, commit.
+ 1. README: challenge-harness section — DONE 2026-11-07.
+ 2. ASM_DESIGN.md: still TO-DO — append the three review amendments
+    (candidate-listing layer; listing token-list cap; `fits_budget` field in
+    §6.3) marked "Added in review, 2026-11-07" — do not rewrite the file.
+    PRIORITY RAISED: the W6 C4=0/13 finding is the empirical motivation.
+ 3. Scratch-crop cleanup per §I — still TO-DO (crops kept on disk).
+ 4. Full §V green on benchmark.py + challenge commands; update statuses here,
+    commit. — DONE 2026-11-07 (results artifacts also committed).
 
 ### W8  Stretch (only after W7)
 - Baseline comparison: same sweep on a text-only fixture (event units disabled) to

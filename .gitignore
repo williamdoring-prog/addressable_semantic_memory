@@ -5,7 +5,6 @@ asm_c
 asm_c_asan
 asm_rust
 asm_go
-results/
 
 # challenge-documents: keep only the working images listed in WORKQUEUE.md §I.
 # Everything else is a scratch transcription crop (regenerable; deleted in W7).
