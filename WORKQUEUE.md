@@ -42,7 +42,14 @@ continue at the first `todo`.
 
 ## §E Environment facts (Windows machine, PowerShell)
 
-- Repo root: `C:\Users\willi\Projects\asm_multilang_benchmark`
+- Repo root: `C:\Users\willi\Projects\asm_multilang_benchmark` — a benchmarking
+  workspace since the 2026-11-07 restructure: `accuracy_benchmarking/` holds
+  the active ASM accuracy track (all harness files); `performance_benchmarking/`
+  is the predecessor project as an independent nested repository (do not edit
+  from here); `deploy-package/` is an empty release-staging dir. Directory
+  purposes are documented in ASM_DESIGN.md "Repository layout".
+- `ASM_DESIGN.md` and `WORKQUEUE.md` (this file) live at the REPO ROOT.
+- Working directory for every command in this file: `accuracy_benchmarking/`.
 - Python 3.10 at `python` (site-packages: pymupdf installed, PIL installed; no pypdf).
 - `go` on PATH is STALE (msys2 Go 1.17). Use `& $env:GOROOT\bin\go.exe` for builds
   and formatting. `benchmark.py` already handles this automatically.
@@ -55,12 +62,12 @@ continue at the first `todo`.
 
 ## §I File inventory
 
+All paths below are relative to `accuracy_benchmarking/` (see §E).
+
 - Core impls (all verified MATCH on toy sample): `asm.py`, `asm_c.c`+`asm_c.h`+`asm_c_main.c`,
   `asm.rs`+`asm_main.rs`, `asm.go`+`asm_main.go`, runner `benchmark.py`,
   challenge harness `challenge.py`, `check_challenge.py`, CLI entry
-  `asm_main.py` (2026-11-07), `README.md`,
-  `ASM_DESIGN.md` (design spec for the real system; reviewed 2026-11-07, see W7),
-  `.gitignore`.
+  `asm_main.py` (2026-11-07), `README.md`, `.gitignore` ONLY at repo root.
   Mains take argv[1]=input file, argv[2]=budget (W4); no args = embedded toy.
   Generated (hash-stable, rerun mk_fixture.py to refresh): `asm_fixture.json`,
   `asm_input.txt`. Results artifacts (committed): `results/`.
@@ -78,7 +85,7 @@ continue at the first `todo`.
   - Everything else matching `fig5*.png` / `gt_*.png` / `z_*.png` in that dir is a
     scratch crop; safe to delete ONLY after W1 passes (W7).
 
-## §V Verification commands (run at session start)
+## §V Verification commands (run at session start; all commands from `accuracy_benchmarking/`)
 
 - [x] Toy parity (must ALWAYS stay green):
       command: `python benchmark.py`

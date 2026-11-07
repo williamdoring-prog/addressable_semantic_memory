@@ -8,6 +8,55 @@
 
 ---
 
+## Repository layout
+
+Added 2026-11-07. The repository root is a benchmarking workspace: three
+directories plus the shared documents `ASM_DESIGN.md` (this specification,
+applying across both benchmarking tracks) and `WORKQUEUE.md` (the
+continuation protocol and work queue for the active track). This section is
+deliberately unnumbered so that section numbers referenced elsewhere
+(§5.2, §6.3, W7 amendments) stay stable.
+
+### `accuracy_benchmarking/` — accuracy track (primary)
+
+The active implementation and measurement of this design's first concrete
+question: does the addressable-memory retrieval layer preserve the facts a
+consumer needs as the served context shrinks? Contents: four equivalent
+deterministic ASM implementations in Python, C, Rust, and Go (`asm.py`,
+`asm_c.c`+`asm_c.h`+`asm_c_main.c`, `asm.rs`+`asm_main.rs`, `asm.go`+
+`asm_main.go`, `asm_main.py`, run by `benchmark.py`), the challenge harness
+(`challenge.py`, `check_challenge.py`), the NOAA challenge inputs and oracle
+(`challenge-documents/`), the generated fixture files (`asm_fixture.json`,
+`asm_input.txt`), `README.md`, and the committed `results/` artifacts
+(per-budget prompts, criteria checklist, adequacy tables). All harness
+commands are run from inside this directory. Layout, adequacy semantics,
+and the word-count (never-"tokens") rule for the harness live in README.md
+and `WORKQUEUE.md`; the design obligations behind them are in this
+specification (§5.2 and §6).
+
+### `performance_benchmarking/` — predecessor track
+
+The earlier sibling project, retained as an independent nested repository
+with its own git history (`app/`, `asm/`, `benchmarks/`, `data/`, `docs/`,
+`tests/`, and its own README, ARCHITECTURE and specification documents). It
+holds the prior multi-language performance benchmarking of the same memory
+idea — timing and throughput measurements rather than agreement and
+retrieval-adequacy checks. Keep it as prior art and historical context; do
+not couple its code to `accuracy_benchmarking/` and do not edit its
+contents as part of the accuracy track's work.
+
+### `deploy-package/` — release staging (reserved)
+
+Currently empty. Reserved as the staging area where a deployable release
+package is assembled: the built binaries of the four implementations, the
+fixture set and runner needed to reproduce a measurement run, and the
+minimal documentation to operate it — packaged as one self-contained
+deliverable. Because git does not track empty directories, this directory
+will gain a README once release packaging (a future item in `WORKQUEUE.md`)
+starts populating it.
+
+---
+
 ## 1. Executive summary
 
 Addressable Semantic Memory (ASM) is a model-independent memory and retrieval layer. It stores original source material, creates linked semantic representations at different abstraction levels, and allows a model to request additional detail only where it is needed.
