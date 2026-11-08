@@ -108,7 +108,7 @@ def check_budget(budget_key, summary, meta, zero_years, verdict_years):
     for year in zero_years:
         year_token = year
         mentioned = year_token in context_tokens
-        hurricanes = year_token in hurricane_years
+        hurricanes = int(year) in hurricane_years
         zero_report.append(
             {"year": year, "mentioned": mentioned, "hurricanes": hurricanes,
              "pass": mentioned and not hurricanes}
@@ -125,7 +125,7 @@ def check_budget(budget_key, summary, meta, zero_years, verdict_years):
     for year in verdict_years:
         has_summary = f"figure5/year-summary/{year}" in addresses
         has_hurricane = any(
-            entry.get("type") == "hurricane" and year in entry.get("years", [])
+            entry.get("type") == "hurricane" and int(year) in entry.get("years", [])
             for entry in selected_meta
         )
         verdict_report.append(
