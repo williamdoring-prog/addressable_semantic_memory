@@ -1,0 +1,188 @@
+# ASM Independent Research Review — Benchmark v0.1
+
+## Objective
+
+Conduct an independent, critical research review of the current Addressable Semantic Memory (ASM) implementation and its latest multi-language benchmark results.
+
+The objective is to determine whether the experimental design, measurements, conclusions, and proposed next steps are scientifically defensible.
+
+**This is a review-only task. Do not modify source code, benchmark fixtures, existing results, or architecture documentation.**
+
+## Context
+
+The current ASM implementation has:
+
+- Matching algorithmic output across Python, C, Rust, and Go.
+- A deterministic LLM-facing tool interface with 10/10 passing checks.
+- JSON, XML, YAML, and plain-text request/response support.
+- A deterministic NOAA challenge suite.
+- Paired ASM and no-ASM control experiments.
+- Context budgets of 150, 300, 600, 1200, and 2400 whitespace-delimited words.
+- A full-context control containing 28,177 words and 31 oracle facts.
+- An opt-in five-model LLM evaluation matrix that has not yet established actual downstream task accuracy.
+
+Latest reported findings:
+
+- At 2,400 words, ASM achieves 11.7x context reduction and 29% oracle-fact quality retention.
+- At full context, ASM retains 29/31 facts versus 31/31 for the control.
+- Small-budget retrieval fails to recover verdict-year facts (C4), scoring 0/13.
+- Flat term-overlap ranking appears to favor prose over structured information.
+- The current C3 candidate-listing amendment is intended to address this weakness.
+- A structural retrieval filter excludes certain none-summary units.
+- Cross-language internal and process timing measurements show some unexpected differences, including a zero-nanosecond Go result in the toy benchmark.
+
+## Review requirements
+
+### 1. Experimental validity
+
+Examine whether the current control and ASM arms constitute a fair comparison.
+
+Identify:
+- Confounding variables.
+- Missing controls.
+- Measurement inconsistencies.
+- Potential benchmark leakage.
+- Oracle/scoring biases.
+- Differences in what the control and ASM arms actually receive.
+- Whether quality retention is calculated and interpreted appropriately.
+
+Distinguish demonstrated results from hypotheses.
+
+### 2. Metric validity
+
+Review the following metrics:
+
+- Context reduction ratio.
+- Oracle-fact quality retention.
+- Recall and precision.
+- Relevant words percentage.
+- Semantic Access Efficiency (SAE).
+- Facts per 1,000 words.
+- Internal latency.
+- Process wall time.
+
+Determine whether these metrics are mathematically appropriate, correctly interpreted, and sufficient for evaluating ASM.
+
+Propose any missing metrics that would materially improve the research.
+
+Pay particular attention to whether SAE rewards extreme compression despite very poor absolute task performance.
+
+### 3. Retrieval architecture
+
+Investigate the identified C4 failure.
+
+Evaluate:
+- Flat term-overlap ranking.
+- Structured candidate listing.
+- Hierarchical abstraction.
+- Coverage-aware selection.
+- Semantic relevance.
+- Addressable expansion and retrieval.
+- Adaptive context allocation.
+
+Determine which changes are justified by current evidence and which remain speculative.
+
+Do not assume that adding complexity necessarily improves performance.
+
+### 4. Benchmark methodology
+
+Review the cross-language measurements.
+
+Investigate:
+- Timer resolution.
+- Warm-up and repetition requirements.
+- Compiler optimization.
+- Process startup costs.
+- Serialization costs.
+- Equivalent-work verification.
+- Median and percentile reporting.
+- Measurement noise.
+
+Determine whether any existing performance claims should be withdrawn or qualified.
+
+### 5. Downstream LLM evaluation
+
+Design a rigorous experiment comparing:
+
+A. Full-context no-ASM control.
+B. Fixed-budget ASM.
+C. Hierarchical ASM.
+D. Adaptive-budget ASM.
+
+Specify:
+- Experimental controls.
+- Model selection.
+- Prompt consistency.
+- Token accounting.
+- Repeated trials.
+- Task scoring.
+- Statistical analysis.
+- Latency and resource measurements.
+
+Distinguish oracle-fact retention from actual downstream answer accuracy.
+
+### 6. Academic positioning
+
+Assess the research contribution.
+
+Identify:
+- What is genuinely novel.
+- What resembles existing RAG, semantic memory, compression, and hierarchical retrieval techniques.
+- Which claims are currently supportable.
+- Which claims require further experiments.
+- The strongest potential academic contribution.
+
+Recommend appropriate terminology and a defensible research hypothesis.
+
+### 7. Prioritized recommendations
+
+Produce a prioritized list of recommended actions.
+
+For each action provide:
+
+- Problem being addressed.
+- Supporting evidence.
+- Proposed intervention.
+- Expected benefit.
+- Potential downside.
+- Experiment required to validate it.
+- Dependencies.
+- Priority.
+
+Separate necessary corrections from optional enhancements.
+
+## Required deliverable
+
+Create:
+
+`ASM_INDEPENDENT_RESEARCH_REVIEW_v0.1.md`
+
+Use the following structure:
+
+1. Executive Summary
+2. Current Experimental Evidence
+3. Methodological Weaknesses
+4. Metric and Statistical Review
+5. Retrieval Architecture Assessment
+6. Cross-Language Performance Assessment
+7. Downstream LLM Evaluation Design
+8. Academic Novelty and Positioning
+9. Prioritized Recommendations
+10. Proposed ASM v0.2 Experimental Plan
+11. Claims That Can and Cannot Currently Be Made
+12. References and Further Reading
+
+## Critical instructions
+
+- Be skeptical and independent.
+- Do not simply validate the existing design.
+- Do not invent experimental results.
+- Do not interpret missing evidence as positive evidence.
+- Preserve existing benchmark results.
+- Clearly label facts, interpretations, and hypotheses.
+- Cite external research where appropriate.
+- Prefer minimal architectural changes supported by experimental evidence.
+- Identify flaws in the benchmark even if they undermine favorable ASM results.
+- Do not implement proposed changes.
+
+The goal is not to demonstrate that ASM works. The goal is to establish exactly what ASM has demonstrated, what it has not demonstrated, and what experiment would most convincingly advance the research.

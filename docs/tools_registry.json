@@ -7,7 +7,7 @@
    "tool_id": "commands/bench/all",
    "invocation": "python bench.py",
    "category": "benchmark",
-   "description": "registry refresh + performance suite + accuracy suite",
+   "description": "registry refresh + performance + tools + accuracy suite",
    "workdir": "repo root",
    "outputs": "console; accuracy_benchmarking/results/*",
    "wall": "< 15 s"
@@ -22,6 +22,15 @@
    "wall": "~10 s (with rebuild)"
   },
   {
+   "tool_id": "commands/bench/tools",
+   "invocation": "python bench.py tools",
+   "category": "benchmark",
+   "description": "LLM tool-interface suite: serve/list/inspect ops with json/xml/yaml/toml/csv/plain round-trips (toml parse is tomllib-gated), asm_main.py reference equality, byte-determinism, structured errors, function-calling tool schemas",
+   "workdir": "repo root",
+   "outputs": "console table + accuracy_benchmarking/results/tool_results.json + tool_schema.json",
+   "wall": "< 3 s"
+  },
+  {
    "tool_id": "commands/bench/accuracy",
    "invocation": "python bench.py accuracy [--budgets 150,300,600,1200,2400]",
    "category": "benchmark",
@@ -32,11 +41,20 @@
   },
   {
    "tool_id": "commands/bench/registry",
-   "invocation": "python bench.py registry",
+   "invocation": "python bench.py registry [--check]",
    "category": "registry",
-   "description": "print this registry and write docs/tools_registry.json",
+   "description": "print this registry and write docs/tools_registry.json; --check verifies the committed file matches TOOL_REGISTRY (drift => exit 1 after rewriting)",
    "workdir": "repo root",
    "outputs": "console + docs/tools_registry.json",
+   "wall": "< 1 s"
+  },
+  {
+   "tool_id": "commands/bench/package",
+   "invocation": "python bench.py package [--check]",
+   "category": "package",
+   "description": "assemble deploy-package/: the complete installable tool set (bench.py + accuracy track sources + harness + fixtures + oracle text + fixture builder + generated results + tool registry + deploy README); predecessor track excluded (prior art, bundle-backed)",
+   "workdir": "repo root",
+   "outputs": "deploy-package/*",
    "wall": "< 1 s"
   },
   {
@@ -83,6 +101,60 @@
    "workdir": "accuracy_benchmarking/",
    "outputs": "asm_c.exe, asm_rust.exe, asm_go.exe",
    "wall": "~10 s"
+  },
+  {
+   "tool_id": "commands/challenge/entry",
+   "invocation": "python asm_main.py asm_input.txt <budget>",
+   "category": "benchmark-piece",
+   "description": "single challenge-mode run in Python (file + budget args; no args = embedded toy sample); stdout JSON + BENCHMARK_NS on stderr; the baseline row in bench.py accuracy is this command at budget 1000000",
+   "workdir": "accuracy_benchmarking/",
+   "outputs": "stdout JSON; stderr BENCHMARK_NS",
+   "wall": "< 1 s"
+  },
+  {
+   "tool_id": "commands/asm/tool",
+   "invocation": "python asm_tool.py (--request FILE | --op OP) [--input FILE] [--format json|xml|yaml|toml|csv|txt] [--schema openai|anthropic|jsonschema]",
+   "category": "interface",
+   "description": "ASM LLM tool interface (ASM_DESIGN section 6, WORKQUEUE T1): structured requests in JSON, XML, a documented YAML subset, TOML (tomllib, 3.11+), CSV (one flat row), or plain text; ops serve/list/inspect; expand reports unsupported_op until the abstraction ladder exists; responses echo the sniffed request format with --format as response-only override (csv responses are address/error rows; serve/inspect read back in the other formats; serve JSON is byte-identical with asm_main.py stdout); --schema emits the function-calling tool definition an LLM harness binds; exit 0 ok / 1 structured error document",
+   "workdir": "accuracy_benchmarking/",
+   "outputs": "stdout response document (json/xml/yaml/toml/csv/txt) or tool-definition JSON via --schema; exit code",
+   "wall": "< 1 s"
+  },
+  {
+   "tool_id": "commands/challenge/validate_events",
+   "invocation": "python challenge-documents/validate_events.py",
+   "category": "known-fail",
+   "description": "Figure 5 transcription validator - FAILS BY DESIGN while W1 stays deferred (user directive); do not fix without new directive",
+   "workdir": "accuracy_benchmarking/",
+   "outputs": "exit 1 + known-fail list (see WORKQUEUE W1)",
+   "wall": "< 1 s"
+  },
+  {
+   "tool_id": "commands/predecessor/language_bench",
+   "invocation": "python run_benchmarks.py",
+   "category": "predecessor-benchmark",
+   "description": "predecessor correctness-gated, repeated language microbenchmark driver (cases from standard_suite.py); prior art of record - do not couple to the accuracy track",
+   "workdir": "performance_benchmarking/",
+   "outputs": "console + data/ jsonl",
+   "wall": "minutes (repeats)"
+  },
+  {
+   "tool_id": "commands/predecessor/context_pressure",
+   "invocation": "python run_context_pressure.py",
+   "category": "predecessor-benchmark",
+   "description": "predecessor context-pressure pilot (local-model required; appends a JSONL result file); opt-in only, predecessor-tracked",
+   "workdir": "performance_benchmarking/",
+   "outputs": "doc-stated JSONL result file",
+   "wall": "minutes or longer; needs a local model"
+  },
+  {
+   "tool_id": "commands/predecessor/standard_suite",
+   "invocation": "(imported library, not a CLI)",
+   "category": "predecessor-library",
+   "description": "Standard ASM Benchmark v1 task set definitions (SMOKE_CASE_IDS + categories) consumed by run_benchmarks.py; familiarity note for agents, not an invocation",
+   "workdir": "performance_benchmarking/benchmarks/",
+   "outputs": "module-level constants",
+   "wall": "-"
   },
   {
    "tool_id": "artifacts/local_model_prompts",

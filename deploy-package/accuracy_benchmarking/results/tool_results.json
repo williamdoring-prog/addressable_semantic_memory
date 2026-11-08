@@ -1,0 +1,107 @@
+{
+ "suite": "asm-llm-tool-interface",
+ "reference": "accuracy_benchmarking/asm_tool.py",
+ "design": "ASM_DESIGN section 6; WORKQUEUE T1",
+ "formats": [
+  "json",
+  "xml",
+  "yaml",
+  "toml",
+  "csv",
+  "txt"
+ ],
+ "ops": [
+  "serve",
+  "list",
+  "inspect"
+ ],
+ "store": "asm_input.txt",
+ "store_sha256": "1cb297d74e1c00f06d49776cf20bbd7a31519d2660d16c713b8dd847d52799e0",
+ "budget": 600,
+ "unit_total": 550,
+ "served_units": 12,
+ "context_words": 600,
+ "checks": [
+  {
+   "check": "serve format parity",
+   "pass": true,
+   "detail": "budget 600 serve: json == xml == yaml canonical form"
+  },
+  {
+   "check": "asm_main.py reference equality",
+   "pass": true,
+   "detail": "tool serve JSON is byte-identical with asm_main stdout"
+  },
+  {
+   "check": "serve byte determinism",
+   "pass": true,
+   "detail": "two independent runs, byte-identical stdout"
+  },
+  {
+   "check": "list op (all formats)",
+   "pass": true,
+   "detail": "550 stable addresses in file order; json == xml == yaml == txt"
+  },
+  {
+   "check": "inspect op (exact-ID resolve)",
+   "pass": true,
+   "detail": "doc/chunk/0001 -> 58 words verbatim; json == xml == yaml canonical"
+  },
+  {
+   "check": "txt response = model-readable serve",
+   "pass": true,
+   "detail": "txt serve stdout == json context text"
+  },
+  {
+   "check": "toml emit determinism",
+   "pass": true,
+   "detail": "--format toml response: key = value scalars, inline arrays, [[selected]] array-of-tables; identical bytes across runs"
+  },
+  {
+   "check": "toml request round-trip",
+   "pass": true,
+   "detail": "runtime-limited: no tomllib on this Python; toml requests answer unsupported_runtime honestly (round-trip gate applies on 3.11+)"
+  },
+  {
+   "check": "csv request -> json response",
+   "pass": true,
+   "detail": "quoted-comma-safe flat request; default response json"
+  },
+  {
+   "check": "csv list rows (format: csv)",
+   "pass": true,
+   "detail": "550 address rows, in file order"
+  },
+  {
+   "check": "csv serve refuses honestly",
+   "pass": true,
+   "detail": "no row shape for serve/inspect; json/xml/yaml instead"
+  },
+  {
+   "check": "function-calling schemas",
+   "pass": true,
+   "detail": "openai / anthropic / jsonschema bindings name 'asm' with op enum + WORD budget minimum 1"
+  },
+  {
+   "check": "structured error: expand",
+   "pass": true,
+   "detail": "exit 1 + error code unsupported_op"
+  },
+  {
+   "check": "structured error: zero budget",
+   "pass": true,
+   "detail": "exit 1 + error code invalid_budget"
+  },
+  {
+   "check": "structured error: no store",
+   "pass": true,
+   "detail": "exit 1 + error code no_store"
+  },
+  {
+   "check": "structured error: unknown address",
+   "pass": true,
+   "detail": "exit 1 + error code address_not_found"
+  }
+ ],
+ "all_pass": true
+}

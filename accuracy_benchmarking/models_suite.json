@@ -1,0 +1,36 @@
+{
+ "suite": "five popular distinct small local models (<= ~4B parameters; any single one fits a 10 GB GPU at 4k context; passes are sequential, so only one model is resident at a time)",
+ "word_unit": "words (whitespace-delimited [A-Za-z0-9]+ runs), never tokens",
+ "models": [
+  {
+   "tag": "qwen2.5:1.5b",
+   "vendor": "Alibaba Qwen",
+   "params_b": 1.5,
+   "aliases": ["qwen2.5:1.5b-instruct", "qwen2.5:latest"]
+  },
+  {
+   "tag": "granite3.3:2b",
+   "vendor": "IBM Granite",
+   "params_b": 2.0,
+   "aliases": ["granite3.2:2b", "granite3.1-dense:2b"]
+  },
+  {
+   "tag": "llama3.2:1b",
+   "vendor": "Meta Llama",
+   "params_b": 1.3,
+   "aliases": ["llama3.2:1b-text-q4_K_M"]
+  },
+  {
+   "tag": "gemma3:4b",
+   "vendor": "Google Gemma",
+   "params_b": 4.0,
+   "aliases": ["gemma3:latest", "gemma3:1b"]
+  },
+  {
+   "tag": "phi3.5:3.8b",
+   "vendor": "Microsoft Phi",
+   "params_b": 3.8,
+   "aliases": ["phi3.5"]
+  }
+ ]
+}

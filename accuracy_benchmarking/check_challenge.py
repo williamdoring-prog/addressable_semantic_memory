@@ -58,6 +58,21 @@ def parse_challenge_criteria():
     return zero_years, verdict_years
 
 
+def parse_verdict_pairs():
+    """Oracle (year, hurricane-percentage) pairs from challenge.txt line:
+    'total disaster costs from hurricanes: 1983 (49.2%), 1985 (70.1%), ...'.
+    The arithmetic oracle of record for scoring model responses (C4)."""
+    text = (ROOT / "challenge-documents" / "challenge.txt").read_text(encoding="utf-8")
+    pairs = {}
+    for line in text.splitlines():
+        if VERDICT_HINT in line:
+            for year_str, pct_str in re.findall(
+                r"\b(19[0-9]{2}|20[0-9]{2})\s*\(([0-9]+(?:\.[0-9])?)%\)", line
+            ):
+                pairs[year_str] = float(pct_str)
+    return pairs
+
+
 def load_unit_meta():
     """address -> {type, years, tokens} for event/summary/question units."""
     units = json.loads((ROOT / "asm_fixture.json").read_text(encoding="utf-8"))
@@ -85,6 +100,11 @@ def check_budget(budget_key, summary, meta, zero_years, verdict_years):
     selected = summary["selected"]
     addresses = [entry["address"] for entry in selected]
     selected_meta = [meta[a] for a in addresses if a in meta]
+
+    try:
+        budget = int(budget_key)
+    except (TypeError, ValueError):
+        budget = 0  # arm labels ("control"/"base"); report-only field
 
     context_tokens = set()
     for entry in selected_meta:
@@ -136,7 +156,7 @@ def check_budget(budget_key, summary, meta, zero_years, verdict_years):
     ts_count = sum(1 for entry in selected_meta if entry.get("type") == "tropical_storm")
 
     return {
-        "budget": int(budget_key),
+        "budget": budget,
         "context_words": summary["Python"]["context_words"],
         "selected": len(addresses),
         "C1_address_scope": scope_ok,

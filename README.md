@@ -35,10 +35,28 @@ consolidation item C3 will refine it after the two tracks are reconciled.
 From the repo root:
 
 ```text
-python bench.py all          # registry + performance + accuracy
+python bench.py all          # registry + performance + tool suite + accuracy
 python bench.py performance  # cross-language parity + internal/process timing
+python bench.py tools        # LLM tool-interface suite (json/xml/yaml/toml/csv/plain)
 python bench.py accuracy     # budget sweep + adequacy + full-serve baseline
 python bench.py registry     # print + write docs/tools_registry.json
+```
+
+LLM tool interface (`accuracy_benchmarking/asm_tool.py`, ASM_DESIGN §6):
+structured tool requests reach ASM the way function calling works — in
+JSON, XML, a documented YAML subset, TOML (tomllib, Python 3.11+), CSV
+(one flat header+data row), or plain text; ops `serve` (budgeted context
+assembly), `list` (stable addresses), `inspect` (exact-ID resolve);
+responses echo the sniffed request format (`--format` overrides the
+response only; csv responses are address/error rows, others default to
+json), and `expand` is reported as `unsupported_op` until the abstraction
+ladder exists. `--schema openai|anthropic|jsonschema` prints the
+function-calling tool definition a harness binds. Examples:
+
+```text
+python accuracy_benchmarking/asm_tool.py --input accuracy_benchmarking/asm_input.txt --op serve `
+    --budget 600 --question "Which state had the most ice?" --format json
+python accuracy_benchmarking/asm_tool.py --schema openai     # tool definition
 ```
 
 Human-readable tables print to the console; deterministic artifacts

@@ -63,13 +63,18 @@ log, deliberately excluded from version control by the root `.gitignore`
 
 ### `deploy-package/` — release staging (reserved)
 
-Currently empty. Reserved as the staging area where a deployable release
-package is assembled: the built binaries of the four implementations, the
+Populated by `python bench.py package` (first assembled 2026-11-08).
+Reserved as the staging area where a deployable release
+package is assembled: the central CLI `bench.py`, the accuracy-track
+sources (including the `asm_tool.py` LLM tool interface), the
 fixture set and runner needed to reproduce a measurement run, and the
 minimal documentation to operate it — packaged as one self-contained
-deliverable. Because git does not track empty directories, this directory
-will gain a README once release packaging (a future item in `WORKQUEUE.md`)
-starts populating it.
+deliverable. Two packaging notes: the volatile `results/challenge_results.json`
+(per-run timings) is deliberately excluded so `package --check` never
+reports timing-induced drift, and the
+predecessor track stays excluded (prior art of record — recover it from
+`performance_benchmarking/previous-history.bundle` in the source
+repository).
 
 ---
 
@@ -378,6 +383,22 @@ INSPECT_SOURCE(address)
 ```
 
 The API may use JSON, function calls, tool calls, or another structured protocol. The visible compact representation should not require embedding large amounts of metadata into prose.
+
+Concrete reference binding (2026-11-08, WORKQUEUE T1):
+`accuracy_benchmarking/asm_tool.py` — an LLM tool interface accepting
+requests in JSON, XML, a documented YAML subset, TOML (tomllib-gated;
+older runtimes answer honest `unsupported_runtime`), CSV (one flat
+header+data row; quoted commas round-trip), or plain text
+(`python bench.py tools` gates it deterministically via
+`results/tool_results.json`; `--schema openai|anthropic|jsonschema`
+emits the function-calling tool definition, committed as
+`results/tool_schema.json`). Current ops cover the flat store:
+`serve` (§7 budgeted context assembly), `list` (stable addresses, §6.1),
+`inspect` (exact-ID resolve). Ladder ops such as `EXPAND(address,
+target_level)` report `unsupported_op` explicitly — per §6.2 the
+interface reports what is missing rather than approximating — until the
+abstraction ladder (§5.2) exists; porting the interface to the
+C/Rust/Go builds is queued as T1 step (b).
 
 ### 6.1 Stable addresses
 
