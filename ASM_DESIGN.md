@@ -12,8 +12,13 @@
 
 Added 2026-11-07. The repository root is a benchmarking workspace: three
 directories plus the shared documents `ASM_DESIGN.md` (this specification,
-applying across both benchmarking tracks) and `WORKQUEUE.md` (the
-continuation protocol and work queue for the active track). This section is
+applying across both benchmarking tracks), `WORKQUEUE.md` (the
+continuation protocol and work queue), `bench.py` (the central
+command-line utility that runs the performance and/or accuracy benchmark
+suites and prints their metric tables; metric definitions in WORKQUEUE
+§R19), and `docs/` (`IDEAS_LEDGER.md` — consolidation inventory;
+`tools_registry.json` — the agent tool registry refreshed by
+`python bench.py registry`). This section is
 deliberately unnumbered so that section numbers referenced elsewhere
 (§5.2, §6.3, W7 amendments) stay stable.
 
@@ -28,8 +33,11 @@ deterministic ASM implementations in Python, C, Rust, and Go (`asm.py`,
 (`challenge.py`, `check_challenge.py`), the NOAA challenge inputs and oracle
 (`challenge-documents/`), the generated fixture files (`asm_fixture.json`,
 `asm_input.txt`), `README.md`, and the committed `results/` artifacts
-(per-budget prompts, criteria checklist, adequacy tables). All harness
-commands are run from inside this directory. Layout, adequacy semantics,
+(per-budget prompts, criteria checklist, adequacy tables). Piece-level
+harness commands run from inside this directory; the central CLI
+`python bench.py` runs them from the repo root and prints the
+consolidated metric tables (WORKQUEUE §R19, agent registry §R20).
+Layout, adequacy semantics,
 and the word-count (never-"tokens") rule for the harness live in README.md
 and `WORKQUEUE.md`; the design obligations behind them are in this
 specification (§5.2 and §6).
@@ -49,9 +57,10 @@ ARCHITECTURE, and specification documents. It holds the prior
 multi-language performance benchmarking of the same memory idea — timing
 and throughput measurements rather than agreement and retrieval-adequacy
 checks. Keep it as prior art of record: do not couple its code to
-`accuracy_benchmarking/` or edit its contents as part of the accuracy
-track until a reconciliation decision merges the trees (user has floated
-one; queued as WORKQUEUE W9). Version-control note:
+`accuracy_benchmarking/`; the 2026-11-07 consolidation queue (WORKQUEUE
+C1..C6) governs reconciliation — predecessor root docs are scheduled for
+archive (C3) and their superseded objectives (browser interface, token
+budgets) are stamped as superseded. Version-control note:
 `data/results/experiments.jsonl` is a 97 MB append-only experiment log,
 deliberately excluded from version control by the root `.gitignore` — it
 stays working-tree-only.
@@ -625,6 +634,17 @@ Evaluate more than compression ratio. Measure:
 A smaller representation is useful only if it preserves enough information to guide correct retrieval. A system that saves tokens but causes incorrect expansion choices or loses important qualifications has not succeeded.
 
 Benchmark against a no-ASM baseline using the same source material, model, tokenizer, prompt budget, and answer criteria. Record exact experimental conditions. Report exact-match scoring separately from semantic or rubric-based evaluation.
+
+The active benchmark suite operationalizes a named metric framework —
+Quality Retention, active-context Compression, Retrieval Recall /
+Precision / Expansion Efficiency, Accuracy per token (facts per 1000
+words), latency splits, and Semantic Access Efficiency (SAE) — via the
+repo-root central CLI `bench.py`; authoritative definitions live in
+WORKQUEUE §R19. For the accuracy track the context-budget unit is
+whitespace-delimited words (`[A-Za-z0-9]+` runs), never tokens;
+tokenizer-specific
+measurements (this section, §5) apply to storage-side token-length
+lists, not to the harness's budget accounting.
 
 ## 13. Initial implementation sequence
 

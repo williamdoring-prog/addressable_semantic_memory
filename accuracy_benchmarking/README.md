@@ -28,7 +28,11 @@ context, ready to give to any local model) and
 budget from `results/challenge_results.json` (C1 address scope, C2 the 18
 zero-hurricane-share years, C3 year range 1980-2010, C4 the 13 verdict
 years, C5 tropical-storm note); per-budget tables land in
-`results/challenge_adequacy.md`.
+`results/challenge_adequacy.md`. The full-serve baseline (measured by the
+central CLI, 2026-11-07) passes 29/31 oracle facts — C4 13/13 after the
+string-vs-int year-comparison fix; the years 1984/1987 are mentioned
+nowhere in the source. C4 = 0/13 at small budgets is the real retrieval
+gap that motivates the candidate-listing amendments (WORKQUEUE C3).
 
 Context windows are counted in whitespace-delimited words
 (`[A-Za-z0-9]+` runs), never "tokens". The runner never answers the
@@ -44,7 +48,18 @@ Each language uses an `ASM` abstraction:
 
 ## Run
 
-From the directory:
+One command per suite from the repo root — the central CLI
+(repo-root `../bench.py`; metric tables + ANSWER SUMMARY + tool
+registry, WORKQUEUE §R19/§R20):
+
+```text
+python bench.py all          # registry + performance + accuracy
+python bench.py performance  # cross-language parity + timing only
+python bench.py accuracy     # budget sweep + adequacy + full-serve baseline
+```
+
+Piece-level commands (diagnosis; registry `commands/parity/*`),
+from the directory:
 
 ```text
 python benchmark.py --build
@@ -91,7 +106,8 @@ Two caveats for tiny inputs like this sample:
   `x86_64-pc-windows-gnu` target.
 - Go: `go` on PATH or in `$GOROOT/bin`; GOROOT must match the go binary version.
 
-For serious benchmarking, the next step should be:
+For serious benchmarking, the next step should be (statistics stay opt-in
+per WORKQUEUE §R17/W8 so default runs remain fast):
 
 - warm-up runs
 - many iterations
@@ -99,4 +115,4 @@ For serious benchmarking, the next step should be:
 - identical fixture loaded from one shared input file
 - separate measurement of retrieval, ranking, lookup, and context assembly
 - optional CPU affinity/process priority controls
-"# addressable_semantic_memory" 
+

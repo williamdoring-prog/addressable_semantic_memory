@@ -1,6 +1,16 @@
 
 # ASM Agent Instructions
 
+> **SUPERSEDED 2026-11-07 — predecessor performance track.**
+> For agents: follow the ROOT protocol — `WORKQUEUE.md` (§Q quick state,
+> §H handoff protocol), `ASM_DESIGN.md` (the spec), and
+> `docs/IDEAS_LEDGER.md`. Do not follow this file's references to the
+> predecessor `README.md`/`WORK_QUEUE.md` (superseded history). The
+> still-valid engineering rules — small functions, no invented
+> requirements, no unmeasured claims, record benchmark conditions —
+> remain operative through the root protocol. Archival moves stay queued
+> (WORKQUEUE C3).
+
 ## Your Role
 
 You are a simple implementation agent working on the ASM project.

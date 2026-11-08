@@ -96,6 +96,23 @@ every action logged here; ideas are conserved even when documents move).
   string-vs-int year comparisons in check_budget (C2 hurricanes flag +
   C4 has_hurricane). No file moved; adequacy outputs regenerated in
   place (results/challenge_adequacy.*).
+- ASM_DESIGN.md — AMENDED 2026-11-07 (doc-consistency pass): repository
+  layout now lists bench.py + docs/; the accuracy-track paragraph names
+  the central CLI; the predecessor-track reconciliation pointer was
+  corrected from the nonexistent "W9" to the consolidation queue
+  (C1..C6); §12 gained the operative metric-framework pointer (WORKQUEUE
+  §R19) and the words-never-tokens harness rule.
+- accuracy_benchmarking/README.md — AMENDED 2026-11-07: the Run section
+  now leads with the central CLI (python bench.py) and keeps the
+  piece-level commands as diagnosis; full-serve baseline 29/31 recorded
+  (checker fix of record); stray trailing "# addressable_semantic_memory"
+  artifact line removed; the serious-benchmarking list is tied to the
+  §R17/W8 opt-in rule.
+- performance_benchmarking/README.md + AGENTS.md + WEB_INTERFACE.md —
+  STAMPED 2026-11-07 with SUPERSEDED/RETIRED banners routing agents to
+  the root protocol (early action ahead of C3's full archive; banners
+  only — no moves, no deletions; AGENTS.md's still-valid engineering
+  rules continue through the root protocol).
 
 ## Flags
 

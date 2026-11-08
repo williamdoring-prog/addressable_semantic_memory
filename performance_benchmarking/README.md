@@ -1,6 +1,16 @@
 
 # ASM — Addressable Semantic Memory
 
+> **SUPERSEDED 2026-11-07 — predecessor performance track.**
+> Governing direction now lives in the root `WORKQUEUE.md` (consolidation
+> edition), `ASM_DESIGN.md`, and `docs/IDEAS_LEDGER.md`. Current product
+> directives: CLI-ONLY (no browser control interfaces — this document's
+> Objective 2 browser interface was retired; the tree is preserved in
+> `previous-history.bundle`), lean package, fast default benchmarks, and
+> context windows counted in whitespace-delimited WORDS, never tokens
+> (this document's token budgets describe the predecessor's accounting).
+> Whole-file archival moves to `docs/archive/` stay queued (WORKQUEUE C3).
+
 ## Project Purpose
 
 Build a local experimental platform to investigate Addressable Semantic Memory (ASM), a proposed approach to reducing LLM context requirements through semantic compression and addressable information retrieval.

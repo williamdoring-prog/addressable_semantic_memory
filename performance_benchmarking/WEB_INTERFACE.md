@@ -1,6 +1,13 @@
 
 # ASM Browser Interface
 
+> **RETIRED 2026-11-07 by user directive (CLI-only — no browser control
+> interfaces).** The `app/` implementation was pruned; the exact tree is
+> preserved in `previous-history.bundle` (recover via `git clone`). All
+> configuration and control is terminal-based; the central CLI is the
+> repo-root `python bench.py` (see `docs/tools_registry.json`). Full
+> archival of this file stays queued (WORKQUEUE C3).
+
 ## General
 
 Create a lightweight browser-based interface for local ASM experimentation.

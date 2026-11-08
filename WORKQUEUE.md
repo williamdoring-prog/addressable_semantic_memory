@@ -497,6 +497,13 @@ status: stretch
   serve passes 29/31 (C4 13/13) and the small-budget C4 0/13 finding
   stands as a real retrieval gap. §V gains the `python bench.py all`
   gate.
+- 2026-11-07 Documentation-consistency pass: ASM_DESIGN repository
+  layout + §12 updated for the central CLI and the metric framework
+  (stale "W9" pointer corrected to the consolidation queue);
+  accuracy_benchmarking/README.md now leads with `python bench.py` and
+  records the 29/31 baseline correction; predecessor entry docs
+  (README/AGENTS/WEB_INTERFACE) stamped SUPERSEDED/RETIRED so any agent
+  entering performance_benchmarking/ routes to the root protocol.
 
 ## §H Handoff protocol (for the next agent)
 
