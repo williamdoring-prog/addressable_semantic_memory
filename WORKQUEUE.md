@@ -30,6 +30,15 @@ conserve all the valuable ideas, prune outdated and unused contents."*
 3. **deploy-package/** — empty release-staging dir, purpose documented in
    ASM_DESIGN.md "Repository layout".
 
+Product direction locked 2026-11-07 (second user directive): the package is
+CLI-ONLY — no browser/server control interfaces, configuration via terminal
+args; keep it LEAN; default benchmark runs finish within a few minutes;
+benchmark focus = performance across a range of small context windows, with
+the goal of maximizing utility of context space (fewer tokens + inference
+loads). Consequences applied already: predecessor `app/` pruned (preserved
+in previous-history.bundle; see docs/IDEAS_LEDGER.md); challenge sweep now
+prints a simple per-impl performance table plus total wall time.
+
 The queue below follows: C1..C6 = consolidation (active), W1 = deferred
 transcription (user directive stands), W8 = stretch. §C rules govern how
 pruning happens (archive + ledger, never silent deletion).
@@ -165,6 +174,17 @@ Consolidation rules (user directive 2026-11-07; §C):
     references incl. docs and tests before marking dead).
 14. After ANY file move: update path references in same item (scripts, docs,
     §V/§I here), then run §V before committing.
+15. **CLI-only**: no browser/server control interfaces anywhere in the
+    package; all configuration via terminal arguments; the predecessor web
+    app was pruned on this basis (theme preserved in the history bundle).
+16. **Lean tree**: caches and build artifacts stay out of the working tree
+    (deleted and regenerated on demand); heavy data stays working-tree-only.
+17. **Fast benchmarks**: the default challenge sweep must finish in a few
+    minutes total wall time (single pass over the anchor budgets
+    150/300/600/1200/2400); repeats stay opt-in (W8), never default.
+18. **Utility metric**: benchmark value is measured as retrievable facts
+    (adequacy criteria coverage) per context WORD served, at increasing
+    stress from small budgets.
 
 ## §X Do-not list + deferred transcription notes
 
@@ -223,7 +243,9 @@ record; X-question background for a future W1 resumption):
 ## The Queue
 
 ### C1  Curation audit → docs/IDEAS_LEDGER.md
-status: todo
+status: in_progress (ledger seeded 2026-11-07 with directive-driven entries:
+product directives, ASM-D1..D9 headline ideas, app/ prune + app-position
+actions; remaining: classify the rest of both trees by reading)
 depends: nothing (predecessor is absorbed and readable)
 Read-before-classify audit of BOTH trees; conservation first.
   1. Walk `performance_benchmarking/` and `accuracy_benchmarking/` (docs
@@ -319,7 +341,7 @@ done-check: one consolidated runbook; no contradicting commands; formats
   documented; ledger updated.
 
 ### C5  Hygiene prune (untrack scratch, delete regenerables)
-status: todo
+status: todo (predecessor app/ already pruned 2026-11-07 via ledger; rest pending)
 depends: C1, C2 (ledger decides exact list)
   1. `git rm --cached` ALL scratch transcription crops in
      accuracy_benchmarking/challenge-documents/ (keep the 4 images: page_18,
@@ -385,6 +407,9 @@ status: stretch
   97 MB experiments.jsonl working-tree-only via .gitignore; ASM_DESIGN
   predecessor section rewritten; scratch-crop untracking discovered as
   restructure fallout and queued (C5).
+- 2026-11-07 Product direction (CLI-only, lean, fast, small-window
+  performance focus) applied: app/ pruned, per-budget performance table
+  added to challenge.py, rules §R15-18 + ledger seeded; commit this one.
 
 ## §H Handoff protocol (for the next agent)
 

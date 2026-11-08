@@ -155,6 +155,7 @@ def main():
         )
 
     budgets = [int(b) for b in args.budgets.split(",") if b.strip()]
+    sweep_start = time.perf_counter_ns()
     if args.build:
         build()
 
@@ -221,6 +222,11 @@ def main():
             f"selected={len(baseline['selected']):>3}/{len(baseline['retrieved_addresses'])} "
             f"retrieved  |  cross-impl MATCH x4"
         )
+        for impl_name, entry in results.items():
+            print(
+                f"    {impl_name:<7} internal={entry['internal_ns'] / 1000:>9.0f} us  "
+                f"process={entry['process_ns'] / 1e6:>8.1f} ms"
+            )
 
     payload = {
         "fixture": input_path.name,
@@ -233,7 +239,9 @@ def main():
     out_path.write_text(json.dumps(payload, indent=1) + "\n", encoding="utf-8")
     checklist_path = write_criteria_checklist()
 
-    print(f"\nwrote {out_path}")
+    sweep_ns = time.perf_counter_ns() - sweep_start
+    print(f"\nsweep wall time: {sweep_ns / 1e9:.1f} s")
+    print(f"wrote {out_path}")
     print(f"wrote {RESULTS_DIR / 'prompt_budget_*.txt'} (local-model prompts)")
     print(f"wrote {checklist_path}")
 
