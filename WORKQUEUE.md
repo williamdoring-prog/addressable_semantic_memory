@@ -75,7 +75,10 @@ If unsure where you were: re-run §V, then continue at the first `todo`.
 
 ## §I File inventory (state at 2026-11-07 consolidation start)
 
-Root: `ASM_DESIGN.md` (spec, has "Repository layout" section),
+Root: `README.md` (initial edition 2026-11-07 — agents start here: reads
+adopt-the-registered-tools-first, `python bench.py` quick start, metric +
+directory pointers; C3 refines it),
+`ASM_DESIGN.md` (spec, has "Repository layout" section),
 `WORKQUEUE.md`, `bench.py` (central CLI since 2026-11-07: performance /
 accuracy / all / registry invocations per §V and §R20),
 `docs/IDEAS_LEDGER.md` (consolidation inventory),
@@ -363,10 +366,14 @@ done-check: layout recorded in queue; deviations documented; user-visible
 ### C3  Documentation consolidation (one spec, one README, archive the rest)
 status: todo
 depends: C1, C2
-  1. Root README.md: merge accuracy-track README content (challenge-harness
-     section, run commands) + predecessor pointer ("what it contains, how to
-     run its benchmark trio, where its findings live (docs/findings-index)").
-     One "Consolidated project" intro naming all three dirs.
+  1. Root README.md: refine the INITIAL EDITION that exists since
+     2026-11-07 (it already covers the agent tool-adoption rule, the
+     central-CLI quick start, and directory pointers): merge deeper
+     accuracy-track content (challenge-harness details from
+     accuracy_benchmarking/README.md) + predecessor pointer ("what it
+     contains, how to run its benchmark trio, where its findings live
+     (docs/findings-index)"). One "Consolidated project" intro naming
+     all three dirs.
   2. ASM_DESIGN.md = the ONE specification: reconcile predecessor's
      ASM_SPECIFICATION.md/ARCHITECTURE.md — extract distinctive valuable
      ideas (data model differences, benchmark protocol ideas, interface
@@ -506,10 +513,20 @@ status: stretch
   state; ASM_DESIGN/ledger/README duplicates turned into pointers
   (replication-removal only, nothing deleted); conservation logged in
   the ledger. Commit 4896a78 preceded this pass (doc CONSISTENCY).
+- 2026-11-07 Root README.md created (initial edition): the agent
+  tool-adoption rule is now the entry point's first instruction —
+  agents adopt the registered tools (docs/tools_registry.json +
+  central CLI) as soon as they are available for development, register
+  any new command in the same commit (§R20), and gate on
+  `python bench.py all` before pushing. Wired through: §H step 1,
+  ASM_DESIGN layout, C3 (refine, not re-create), §I, ledger.
 
 ## §H Handoff protocol (for the next agent)
 
-1. Read §Q; scan §E/§I; run §V (from `accuracy_benchmarking/`). Do not skip §V.
+1. Start with the root `README.md` (agent instructions: adopt the
+   registered tools as soon as you are available for development; run
+   `python bench.py all` as the gate). Then read §Q; scan §E/§I; run §V
+   (from `accuracy_benchmarking/`). Do not skip §V.
 2. Continue the first `status: todo` item (consolidation: C1 first unless a
    listed `in_progress` exists — finish THAT instead). Read that item fully
    plus §C/rule references it cites; work it one step at a time.

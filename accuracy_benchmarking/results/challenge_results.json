@@ -15,29 +15,29 @@
     "context_words": 147,
     "retrieved": 542,
     "selected": 3,
-    "internal_ns": 85600,
-    "process_ns": 99427400
+    "internal_ns": 80300,
+    "process_ns": 85665700
    },
    "C": {
     "context_words": 147,
     "retrieved": 542,
     "selected": 3,
-    "internal_ns": 22202600,
-    "process_ns": 30351300
+    "internal_ns": 22135600,
+    "process_ns": 28860800
    },
    "Rust": {
     "context_words": 147,
     "retrieved": 542,
     "selected": 3,
-    "internal_ns": 3747700,
-    "process_ns": 13209000
+    "internal_ns": 3883900,
+    "process_ns": 11695500
    },
    "Go": {
     "context_words": 147,
     "retrieved": 542,
     "selected": 3,
-    "internal_ns": 2693900,
-    "process_ns": 13620900
+    "internal_ns": 3105300,
+    "process_ns": 11985000
    },
    "context_sha256": "04ec306f848016b2db7d109e3f16092e0d993054cc6c773dd5bd31af30db7d78",
    "all_match": true,
@@ -605,29 +605,29 @@
     "context_words": 299,
     "retrieved": 542,
     "selected": 7,
-    "internal_ns": 90600,
-    "process_ns": 99830600
+    "internal_ns": 74300,
+    "process_ns": 84694000
    },
    "C": {
     "context_words": 299,
     "retrieved": 542,
     "selected": 7,
-    "internal_ns": 22317300,
-    "process_ns": 30380200
+    "internal_ns": 22156300,
+    "process_ns": 28657400
    },
    "Rust": {
     "context_words": 299,
     "retrieved": 542,
     "selected": 7,
-    "internal_ns": 3585200,
-    "process_ns": 13141000
+    "internal_ns": 3832100,
+    "process_ns": 11515300
    },
    "Go": {
     "context_words": 299,
     "retrieved": 542,
     "selected": 7,
-    "internal_ns": 2757700,
-    "process_ns": 13797000
+    "internal_ns": 3108700,
+    "process_ns": 11837300
    },
    "context_sha256": "cc62da201bf73611a12981d9366a8ca5ae0683824ae18b3d1d7875c393a5677f",
    "all_match": true,
@@ -1211,29 +1211,29 @@
     "context_words": 600,
     "retrieved": 542,
     "selected": 12,
-    "internal_ns": 110600,
-    "process_ns": 99566000
+    "internal_ns": 92200,
+    "process_ns": 84245600
    },
    "C": {
     "context_words": 600,
     "retrieved": 542,
     "selected": 12,
-    "internal_ns": 22291300,
-    "process_ns": 29983800
+    "internal_ns": 22195900,
+    "process_ns": 28813000
    },
    "Rust": {
     "context_words": 600,
     "retrieved": 542,
     "selected": 12,
-    "internal_ns": 3731600,
-    "process_ns": 13046800
+    "internal_ns": 3760200,
+    "process_ns": 11411600
    },
    "Go": {
     "context_words": 600,
     "retrieved": 542,
     "selected": 12,
-    "internal_ns": 3295400,
-    "process_ns": 14147100
+    "internal_ns": 3077800,
+    "process_ns": 11604800
    },
    "context_sha256": "5a56cc341baced7b0582fd4c6d90ac7b0809e2f205198283c51a9afd0f46fc00",
    "all_match": true,
@@ -1837,29 +1837,29 @@
     "context_words": 1199,
     "retrieved": 542,
     "selected": 19,
-    "internal_ns": 102500,
-    "process_ns": 98443800
+    "internal_ns": 92200,
+    "process_ns": 85358800
    },
    "C": {
     "context_words": 1199,
     "retrieved": 542,
     "selected": 19,
-    "internal_ns": 22033200,
-    "process_ns": 30373800
+    "internal_ns": 22201400,
+    "process_ns": 28832100
    },
    "Rust": {
     "context_words": 1199,
     "retrieved": 542,
     "selected": 19,
-    "internal_ns": 3755900,
-    "process_ns": 13192200
+    "internal_ns": 3729700,
+    "process_ns": 11572700
    },
    "Go": {
     "context_words": 1199,
     "retrieved": 542,
     "selected": 19,
-    "internal_ns": 2771500,
-    "process_ns": 13834200
+    "internal_ns": 2965100,
+    "process_ns": 12651200
    },
    "context_sha256": "d579ddabc6b71ec4dda139ad0b421cd666a6afcc54a6da6fec989f30f9985339",
    "all_match": true,
@@ -2491,29 +2491,29 @@
     "context_words": 2399,
     "retrieved": 542,
     "selected": 38,
-    "internal_ns": 110100,
-    "process_ns": 98824500
+    "internal_ns": 150700,
+    "process_ns": 84720700
    },
    "C": {
     "context_words": 2399,
     "retrieved": 542,
     "selected": 38,
-    "internal_ns": 22316400,
-    "process_ns": 30330200
+    "internal_ns": 22287500,
+    "process_ns": 29044300
    },
    "Rust": {
     "context_words": 2399,
     "retrieved": 542,
     "selected": 38,
-    "internal_ns": 3776500,
-    "process_ns": 12956300
+    "internal_ns": 3682400,
+    "process_ns": 12154500
    },
    "Go": {
     "context_words": 2399,
     "retrieved": 542,
     "selected": 38,
-    "internal_ns": 2749200,
-    "process_ns": 13894400
+    "internal_ns": 2934000,
+    "process_ns": 12639800
    },
    "context_sha256": "3ec47c6fd0c55c8f43857407d72f975316609f16c6bac34d6f5aec77ff095a07",
    "all_match": true,

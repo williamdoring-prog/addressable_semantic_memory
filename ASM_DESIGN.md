@@ -11,8 +11,10 @@
 ## Repository layout
 
 Added 2026-11-07. The repository root is a benchmarking workspace: three
-directories plus the shared documents `ASM_DESIGN.md` (this specification,
-applying across both benchmarking tracks), `WORKQUEUE.md` (the
+directories plus the shared documents `README.md` (entry point; agents
+start there to adopt the registered tools for development), `ASM_DESIGN.md`
+(this specification, applying across both benchmarking tracks), `WORKQUEUE.md`
+(the
 continuation protocol and work queue), `bench.py` (the central
 command-line utility that runs the performance and/or accuracy benchmark
 suites and prints their metric tables; metric definitions in WORKQUEUE

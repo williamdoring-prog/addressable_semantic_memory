@@ -118,6 +118,17 @@ every action logged here; ideas are conserved even when documents move).
   WORKQUEUE §V (the ledger and README keep dated echoes, never a second
   definition). Nothing deleted — dedupe is replication-removal; every
   conserved statement lives at its named home above.
+- Root README.md — CREATED 2026-11-07 (initial edition; KEEP). Carries
+  the agent tool-adoption rule as its first section: agents must adopt
+  the registered tools (docs/tools_registry.json invocations, central
+  CLI `python bench.py`) as soon as they are available for development,
+  register any new command they create in the same commit (§R20), and
+  gate on `python bench.py all` before pushing. C3 refines this edition
+  into the merged final README.
+- Agent tool-adoption rule — recorded 2026-11-07 in WORKQUEUE §H step 1
+  and the ASM_DESIGN repository-layout list: every session starts at the
+  root README and consults the registry before writing any ad-hoc
+  command.
 
 ## Flags
 
