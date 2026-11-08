@@ -1,55 +1,51 @@
-# WORK QUEUE — asm_multilang_benchmark
+# WORK QUEUE — addressable_semantic_memory (consolidation edition)
 
-Purpose: single continuation document so any agent (including small local models with
-tiny context windows) can resume development across handoffs. Read §Q (quick state),
+Purpose: single continuation document so any agent (including small local
+models with tiny context windows) can resume work across handoffs. Read §Q,
 then work the first `status: todo` item top-down. One item at a time.
 
 Repo: https://github.com/williamdoring-prog/addressable_semantic_memory
 
 ---
 
-## §Q Quick state (read this first; ~340 words)
+## §Q Quick state (read this first)
 
-Project: benchmark of equivalent deterministic "ASM retrieval + bounded context
-assembly" implementations in Python, C, Rust, Go. All four currently build and
-produce byte-identical results on a toy sample (verified end of review phase).
-New work: feed a real document challenge (NOAA report + Figure 5 map
-transcription) and measure retrieval adequacy across a **range of small context
-windows** (budget sweep — user requirement, in progress).
+Project: ONE repository consolidating two benchmark projects of the same
+Addressable Semantic Memory (ASM) idea — 2026-11-07 user directive:
+*"There are two different benchmark projects being consolidated. I want to
+conserve all the valuable ideas, prune outdated and unused contents."*
 
-Status (after 2026-11-07 session; see queue for details):
+1. **accuracy_benchmarking/** — active accuracy track: four equivalent
+   deterministic ASM implementations (Python/C/Rust/Go) + toy parity runner,
+   the NOAA challenge harness (budget sweep in words, cross-impl MATCH,
+   retrieval-adequacy checker), prompt files + criteria checklist for
+   testing local models. All W2..W6 harness items done 2026-11-07.
+2. **performance_benchmarking/** — predecessor performance track, absorbed
+   2026-11-07 as plain files. Nested .git REMOVED; full history preserved in
+   `performance_benchmarking/previous-history.bundle` (tracked; recover via
+   `git clone performance_benchmarking/previous-history.bundle`). Contents:
+   web app (`app/`), `asm/` engine, `benchmarks/` (standard suite,
+   context-pressure pilot, `.asmbench` fixture format), `data/`, extensive
+   findings/milestone docs, tests.
+3. **deploy-package/** — empty release-staging dir, purpose documented in
+   ASM_DESIGN.md "Repository layout".
 
-USER DIRECTIVE (2026-11-07): stop processing the challenge document/PDF for
-transcription purposes. Build the benchmark that tests local models with the
-question prompt and the criteria. Figure 5 digit work is deferred; the
-existing draft event list ships as a PROVISIONAL fixture.
+The queue below follows: C1..C6 = consolidation (active), W1 = deferred
+transcription (user directive stands), W8 = stretch. §C rules govern how
+pruning happens (archive + ledger, never silent deletion).
 
-1. **Figure 5 transcription (W1)** — DEFERRED by directive. The draft JSON
-   with `_flag` notes is the fixture source as-is; `validate_events.py`
-   intentionally still exits 1 (known-fail list in §V). Do NOT resume digit
-   work unless the directive is lifted.
-2. **Challenge harness (W2..W6)** — DONE. mk_fixture.py -> fixture; four
-   parameterized mains (toy fallback intact); challenge.py budget sweep
-   (150/300/600/1200/2400 words) with cross-impl MATCH at every budget;
-   prompt files + criteria checklist for local-model testing; deterministic
-   adequacy checker. See §V for the snapshot and W6 notes for findings.
-
-Ground rules a resumed agent must not violate: see §R (rules) and §X (do-not).
-If unsure which item you were working on: re-run §V (verification) commands and
-continue at the first `todo`.
+If unsure where you were: re-run §V, then continue at the first `todo`.
 
 ---
 
 ## §E Environment facts (Windows machine, PowerShell)
 
-- Repo root: `C:\Users\willi\Projects\asm_multilang_benchmark` — a benchmarking
-  workspace since the 2026-11-07 restructure: `accuracy_benchmarking/` holds
-  the active ASM accuracy track (all harness files); `performance_benchmarking/`
-  is the predecessor project as an independent nested repository (do not edit
-  from here); `deploy-package/` is an empty release-staging dir. Directory
-  purposes are documented in ASM_DESIGN.md "Repository layout".
-- `ASM_DESIGN.md` and `WORKQUEUE.md` (this file) live at the REPO ROOT.
-- Working directory for every command in this file: `accuracy_benchmarking/`.
+- Repo root: `C:\Users\willi\Projects\asm_multilang_benchmark` — benchmarking
+  workspace: `accuracy_benchmarking/` (active accuracy track),
+  `performance_benchmarking/` (absorbed predecessor, plain files),
+  `deploy-package/` (empty, reserved). Shared documents at root:
+  `ASM_DESIGN.md`, `WORKQUEUE.md` (this file), `.gitignore`.
+- Working directory for §V commands: `accuracy_benchmarking/`.
 - Python 3.10 at `python` (site-packages: pymupdf installed, PIL installed; no pypdf).
 - `go` on PATH is STALE (msys2 Go 1.17). Use `& $env:GOROOT\bin\go.exe` for builds
   and formatting. `benchmark.py` already handles this automatically.
@@ -60,66 +56,82 @@ continue at the first `todo`.
 - git identity: repo-local `williamdoring-prog <williamdoring-prog@users.noreply.github.com>`.
 - No `gh` CLI; pushes use Git Credential Manager.
 
-## §I File inventory
+## §I File inventory (state at 2026-11-07 consolidation start)
 
-All paths below are relative to `accuracy_benchmarking/` (see §E).
+Root: `ASM_DESIGN.md` (spec, has "Repository layout" section),
+`WORKQUEUE.md`, `.gitignore` (excludes the 97 MB
+`performance_benchmarking/data/results/experiments.jsonl` — working-tree-only
+by design).
 
-- Core impls (all verified MATCH on toy sample): `asm.py`, `asm_c.c`+`asm_c.h`+`asm_c_main.c`,
-  `asm.rs`+`asm_main.rs`, `asm.go`+`asm_main.go`, runner `benchmark.py`,
-  challenge harness `challenge.py`, `check_challenge.py`, CLI entry
-  `asm_main.py` (2026-11-07), `README.md`, `.gitignore` ONLY at repo root.
-  Mains take argv[1]=input file, argv[2]=budget (W4); no args = embedded toy.
-  Generated (hash-stable, rerun mk_fixture.py to refresh): `asm_fixture.json`,
-  `asm_input.txt`. Results artifacts (committed): `results/`.
-- Challenge dir `challenge-documents/`:
-  - ORACLES (never modify): `challenge.txt` (question + 5 criteria),
-    `noaaTechnicalReport.pdf`/`noaTechnicalReport.txt` (source doc; fig5 caption at
-    text line ~501; figure is 0-indexed PDF page 18 / printed page 15).
-  - `figure5_events_draft.json` — transcription WIP with `_flag` notes. Inconsistent in
-    known ways; W1 fixes it. Editing allowed.
-  - `validate_events.py` — transcription validator (runs vs. challenge.txt). Keep in sync.
-  - Working images KEEP: `page_18.png`, `page_18_hi.png`, `figure5_full.png` (2420x1800
-    crop of the figure at 400 dpi), `fig5_grid.png` (same crop + 200px blue grid +
-    magenta pixel-coordinate labels — USE IT to locate crops; displayed renders are
-    downscaled ~0.83x, so eyeballed coordinates drift).
-  - Everything else matching `fig5*.png` / `gt_*.png` / `z_*.png` in that dir is a
-    scratch crop; safe to delete ONLY after W1 passes (W7).
+`accuracy_benchmarking/`:
+- Four impls + entries: `asm.py`, `asm_c.c`+`asm_c.h`+`asm_c_main.c`,
+  `asm.rs`+`asm_main.rs`, `asm.go`+`asm_main.go`, `asm_main.py`;
+  mains take argv[1]=input file, argv[2]=budget (no args = embedded toy).
+- Runners/harness: `benchmark.py` (toy parity), `challenge.py` (sweep + prompt
+  files), `check_challenge.py` (adequacy), `challenge-documents/mk_fixture.py`.
+- Generated (hash-stable): `asm_fixture.json`, `asm_input.txt` (550 units,
+  28,177 words). Committed results: `results/` (5 prompt files, criteria
+  checklist, results + adequacy json/md).
+- `challenge-documents/`: oracles (`challenge.txt`, PDF + text extract),
+  `figure5_events_draft.json` (PROVISIONAL — W1 deferred), `validate_events.py`
+  (intentionally failing; known-fail list in §V), 4 keeper images
+  (`page_18.png`, `page_18_hi.png`, `figure5_full.png`, `fig5_grid.png`),
+  ~81 scratch transcription crops (ACCIDENTALLY TRACKED in the restructure
+  commit; untrack in C5 step 1), ft px/`fx_*`/`mc_*` crops same status.
+- `README.md` (challenge-harness section done).
+
+`performance_benchmarking/` (absorbed; 79 tracked files, contents assume no
+posts before reading): `previous-history.bundle` (history backup — PROTECTED),
+`README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `ASM_SPECIFICATION.md`,
+`BENCHMARK_PROTOCOL.md`, `DIRECTORY_STRUCTURE.md`, `LANGUAGE_BENCHMARKS.md`,
+`PROJECT_PLAN.md`, `WEB_INTERFACE.md`, `WORK_QUEUE.md` (superseded → C3
+archive), docs/ (implementation logs + findings including milestone series,
+CONTEXT_PRESSURE_PILOT_2026-11-05, CRITERION_EVALUATION_FINDINGS M14,
+LANGUAGE_BENCHMARK_FINDINGS series, PROJECT_VERIFICATION M12), benchmarks/
+(run_benchmarks.py, standard_suite.py, run_context_pressure.py,
+formats/ASM_BENCHMARK_V1.md, fixtures incl. expected_outputs, C/Rust/Go mains),
+asm/engine.py, app/ (interface + controller), tests/, data/results jsonls
+(experiments.jsonl 97 MB ignored; language_benchmarks.jsonl ~1 MB tracked).
+
+`deploy-package/`: empty (git does not track the empty dir).
 
 ## §V Verification commands (run at session start; all commands from `accuracy_benchmarking/`)
 
 - [x] Toy parity (must ALWAYS stay green):
       command: `python benchmark.py`
       pass criteria: Python/C/Rust/Go all `MATCH`, no ERROR rows.
-- [x] Transcription validator (INTENTIONALLY failing after the 2026-11-07
-      user directive; W1 deferred — do not "fix" without a new directive):
+      State 2026-11-07: 4/4 MATCH.
+- [x] Transcription validator (INTENTIONALLY failing; W1 deferred — do not
+      "fix" without a new directive):
       command: `python challenge-documents\validate_events.py`
-      state: exits 1, same known-fail list as before (1983/1985/1999/2005
+      state: exits 1, known-fail list unchanged (1983/1985/1999/2005
       percentages, 2008, zero-years 1981/1984/1987 coverage, count 100 != 99).
 - [x] Challenge sweep + adequacy:
       command: `python challenge.py --budgets 150,300,600,1200,2400`
       then `python check_challenge.py`
-      state at handoff (2026-11-07, final): cross-impl MATCH x4 at every
-      budget; adequacy: C1 PASS all budgets; C2 grows 2/18 -> 9/18
-      (150 -> 2400 words); C3 FAIL (prose chunks carry years outside
-      1980-2010, e.g. climate-normal periods); C4 0/13 at every budget —
-      no structured figure5/* unit is ever selected because its match
-      vocabulary (hurricane/cost/billion, score 2-3) loses to prose chunks
-      (score 5-7). This is the headline finding and the motivation for the
-      ASM_DESIGN amendments queued in W7 (candidate-listing layer).
+      state (2026-11-07, final): cross-impl MATCH x4 at every budget;
+      adequacy C1 PASS; C2 grows 2/18 -> 9/18 (150 -> 2400 words); C3 FAIL
+      (prose chunks carry years outside 1980-2010); C4 0/13 at every budget —
+      no figure5/* unit ever selected (2-3 term overlap vs 5-7 for prose).
+      This finding motivates the candidate-listing layer amendments (C3).
+- Consolidation changes file paths? Update §V/§I/README/ASM_DESIGN in the
+  SAME item that moves files, then re-run all three checks before commit.
 
 ## §R Locked decisions (do NOT re-derive or re-decide)
+
+Transcription/challenge rules (W1 background):
 
 1. The challenge is a BENCHMARK TEST INPUT, not a task for the agent. Never "answer"
    the challenge question in analysis.
 2. Eval scope: retrieval-adequacy only (context contains the facts each criterion
    needs). No LLM in the loop.
 3. Fixture content: document text chunks + structured Figure 5 event entries.
-4. Budget sweep over a RANGE of small context windows (user requirement). Windows are
-   counted in whitespace-delimited WORDS (ASCII `[A-Za-z0-9]+` runs), labeled `words`,
-   never `tokens` (ASM_DESIGN.md §5.2: never present word counts as tokenizer counts).
+4. Context budgets RANGE over small windows; counted in whitespace-delimited
+   WORDS (ASCII `[A-Za-z0-9]+` runs), labeled `words`, never `tokens`
+   (ASM_DESIGN.md §5.2).
 5. All four implementations consume the same input and emit the same JSON shape:
    `{original_source_words, question_words, retrieved_addresses:[], selected:[{address,score}],
-   "context":"...", context_words}` — already implemented on the toy sample.
+   "context":"...", context_words}`.
 6. Figure 5 interpretation rules (locked by math cross-check against challenge.txt):
    - "hurricane" = filled red dot with slash; counts in the numerator.
    - Tropical-storm swirl and every other icon type (flood house, fires, storm,
@@ -134,14 +146,41 @@ All paths below are relative to `accuracy_benchmarking/` (see §E).
 8. Event fragment text form (W2): `Figure 5 event: <type>. Location: <loc>. <year>/
    <years>: cost <cost> billion dollars.` Document chunks keep source prose verbatim.
 
-## §X Do-not list + open questions
+Consolidation rules (user directive 2026-11-07; §C):
 
-- Do NOT add new dependencies (stdlib + pymupdf + PIL only).
-- Do NOT delete oracles, `page_18*.png`, `figure5_full.png`, `fig5_grid.png`, `gt_*.png`.
-- Do NOT invent events to close the count. Every event exists only if read on the map.
-- Do NOT edit `challenge.txt` or the PDF-derived text extract.
+9. **Archive, never silently delete.** Superseded/finished documentation moves
+   to `docs/archive/` with a one-line status header added in place of its
+   authoritative role. Files marked PRUNE that are regenerable (caches, build
+   artifacts, scratch crops) may be removed outright — tracked scratch files
+   are UNTRACKED (`git rm --cached`) not deleted, unless physically worthless.
+10. **Every prune/merge/archive decision gets an IDEAS_LEDGER.md entry** with
+    provenance (where the content lived, why the action, where its value
+    survives). Valuable IDEAS are conserved even when their documents are
+    archived: the ledger is the index of ideas, not of files.
+11. `performance_benchmarking/previous-history.bundle` is PROTECTED — never
+    delete; it is the only copy of the predecessor's git history.
+12. `performance_benchmarking/data/results/experiments.jsonl` stays
+    working-tree-only (root .gitignore); this is deliberate, not an accident.
+13. Code is not deleted unless C1/C5 confirmed it unreferenced (grep for
+    references incl. docs and tests before marking dead).
+14. After ANY file move: update path references in same item (scripts, docs,
+    §V/§I here), then run §V before committing.
 
-Open questions (decided by digit-level crops only, never by outside inference):
+## §X Do-not list + deferred transcription notes
+
+Do-not list:
+
+- Do NOT resume W1 transcription (PDF/digit processing) without a new user
+  directive; validator stays intentionally failing.
+- Do NOT edit oracles (`challenge.txt`, PDF-derived text extract).
+- Do NOT invent Figure 5 events to close counts.
+- Do NOT delete `previous-history.bundle`, oracle files, or the four keeper
+  images; do not untrack them either.
+- Do NOT add dependencies (stdlib + pymupdf + PIL only).
+- Do NOT run an LLM in the harness (prompt files are the interface to models).
+
+Deferred transcription open questions (decided by pixel crops only — kept as
+record; X-question background for a future W1 resumption):
 
 - X1 east-coast stack (~(1990-2200,1340-1470) in figure coords): expect
   `1983 / $4.2` + `1985 / $2.3`; confirm both lines + icon types at >=3x zoom.
@@ -173,154 +212,189 @@ Open questions (decided by digit-level crops only, never by outside inference):
 
 ---
 
-## The Queue
+## §B Blockers
 
-### W1  Lock Figure 5 transcription
-status: deferred (user directive 2026-11-07 — no PDF/digit processing)
-depends: nothing
-inputs: gt_*.png tiles + figure5_full.png; `figure5_events_draft.json`
-steps:
-  1. Read remaining unread tiles: gt_22, gt_23, gt_12, gt_02, gt_10, gt_20, gt_01, gt_00.
-  2. Make >=3x LANCZOS micro-crops for X1..X6; read crops one at a time; record
-     digits verbatim, defer inference.
-  3. Apply draft edits (adjust per crop findings):
-     a. REMOVE hypothesis/dup entries: e85 (1985/$15.4 is a misread), e98 (2005/$1.0
-        guess), e99 (2004/$8.1 guess), e100 (2010/$2.0 dup of e21).
-     b. ADD: {1983, 4.2, <icon>}, {1985, 2.3, <icon>} (X1) and any confirmed plains
-        stack events per X2.
-     c. FIX: e23 years -> [2000]; e24 cost -> 1.1; e09/e10 location ->
-        northern_rockies; e61 type -> ice_storm (rain-cloud icon); e42 type ->
-        heat_wave_drought (thermometer+sun icon); e43 type per crop (cost stays 9.5).
-     d. Hawaii: exactly one event, e84 1992/$2.7 HURRICANE (hollow circle + dots are
-        island outlines, verified in gt_21).
-  4. Run validator (§V) -> must exit 0.
-  5. Write final `figure5_events.json` (same schema, no `_flag` fields), then create
-     `challenge-documents/oracle-notes.md` with: tile-read log, X-question resolutions,
-     history (one line per completed item), BLOCKERS section, and the STATE snapshot
-     (validator output summary).
-done-check: validator exits 0; `figure5_events.json` + `oracle-notes.md` exist.
+(format: date — what — what would unblock it — owner/approach)
 
-### W2  Build ASM fixture from report text + Figure 5 events
-status: done 2026-11-07 (`challenge-documents/mk_fixture.py`; outputs
-`asm_fixture.json` + `asm_input.txt`, rerun hash-stable; 550 units,
-28,177 words). AMENDMENT vs original spec: the challenge question is NOT a
-memory unit (it echoes into context at score 39) — it stays in asm_input.txt
-line 1 only; see mk_fixture.py docstring.
-depends: (W1 deferred by directive — draft events used as-is)
-Create `challenge-documents/mk_fixture.py`:
-  1. Chunk `noaTechnicalReport.txt`: split on blank lines; merge blocks to ~55-80
-     whitespace-words; ids `doc/chunk/0001`...
-  2. Event units from `figure5_events.json`: per event address
-     `figure5/disaster/<year|yearspan>/<NN>` text per §R8; plus per-year aggregate
-     units `figure5/year-summary/<year>` (comma-joined `<type> <cost> billion` list).
-  3. Question unit `challenge/question` = challenge.txt line 1 minus `#question:`.
-  4. Deterministic ordering: doc chunks, then events sorted by address.
-  5. Emit `asm_fixture.json` (array of {address, text}) AND `asm_input.txt` (W4
-     line format). Generated artifacts; never hand-edit.
-done-check: running twice yields identical bytes (hash compare); report unit count
-  and total words.
-
-### W3  Budget sweep design (user requirement: range of small context windows)
-status: done 2026-11-07 (anchors 150/300/600/1200/2400 implemented in
-challenge.py; per-(impl,budget) context hash/counts/timing recorded in
-results/challenge_results.json)
-depends: W2
-Sweep anchors: 150, 300, 600, 1200, 2400 words. 150 forces severe selection
-pressure (Figure 5 events must compete); 2400 admits most of the document.
-Record per (impl, budget): context hash, context_words, retrieved count, selected
-count, internal_ns, process_ns, cross-impl MATCH. Lives in the runner (W5).
-
-### W4  Parameterize the four mains (fixture input + budget CLI)
-status: done 2026-11-07 (`asm_main.py` added; file modes added to
-asm_c_main.c / asm_main.rs / asm_main.go: argv[1]=input, argv[2]=budget
-optional, line-2 default; parse OUTSIDE timed section; toy fallback byte-
-identical — `python benchmark.py` remains 4/4 MATCH; file-mode smoke test
-Python/C/Rust/Go all MATCH at budgets 150 and 600)
-depends: W2
-LINE FORMAT (locked; no JSON parsing needed in C):
-  `asm_input.txt` line 1 = question (single line, literal `\t`/`\n` escapes);
-  line 2 = budget (integer words); lines 3..N = `<address>\t<text>` (one per unit).
-Behavior: each main takes OPTIONAL argv[1] = input file, argv[2] = budget; with no
-args keeps the embedded toy sample so `python benchmark.py` stays green (regression
-guarantee). Input parsing happens OUTSIDE the timed section; algorithm +
-serialization stay INSIDE (uniform scope across languages).
-done-check: `python benchmark.py --build` + `python benchmark.py` all MATCH on toy;
-and a fixture-input smoke test where each compiled impl run with
-`asm_input.txt <budget>` yields identical results to asm.py on the same input.
-
-### W5  Challenge runner
-status: done 2026-11-07 (`challenge.py`; per-budget cross-impl MATCH asserts,
-results/challenge_results.json + per-budget console table). USER-DIRECTIVE
-ADDITION: writes `results/prompt_budget_<B>.txt` (question + bounded
-context for testing local models directly — feed a prompt file to a local
-model, score the response with `results/criteria_checklist.md`, which holds
-the five criteria verbatim) and no LLM is invoked by the harness.
-depends: W3, W4
-New `challenge.py`:
-  1. Reuse benchmark.py build().
-  2. Generate asm_input.txt per budget (same fragments; only line 2 changes).
-  3. Run all four impls x budgets; per-budget cross-impl MATCH assert (parse JSON
-     canonically; compare context string). MISMATCH aborts with impl+budget shown.
-  4. Write `results/challenge_results.json`; print per-budget table
-     (impl / context_words / retrieved / selected / internal_ns / process_ns).
-done-check: `python challenge.py --budgets 150,300,600,1200,2400` completes; all
-  impls match at every budget; artifacts written.
-
-### W6  Retrieval-adequacy checker
-status: done 2026-11-07 (`check_challenge.py`; emits
-results/challenge_adequacy.json + .md). Verified from challenge_results.json
-only, no rerun. FINDINGS (see §V): C1 PASS everywhere; C2 grows with budget
-(2/18 -> 9/18); C3 FAIL — generic prose chunk years (1870-1960 normals,
-2011-2050 scenario horizons) enter context; C4 0/13 — flat term-overlap
-scoring never selects figure5/* units (their 2-3 matching terms lose to
-prose chunks with 5-7). Improving C4 needs the ASM_DESIGN candidate-listing
-layer (W7 amendments), not a harness change.
-depends: W5
-New `check_challenge.py` (reads challenge_results.json; no re-run needed). Parse
-challenge.txt criteria; per (impl, budget) verdicts:
-  - C2 zero-years: PASS iff for every zero-year the context contains a unit
-    mentioning that year AND no unit dates a hurricane event to that year
-    (deterministic adjacency scan; heuristic documented in-script).
-  - C4 percentages: per verdict year, context must contain the year's total-cost
-    facts and its hurricane-cost facts. Report which years each budget loses.
-  - C1: context-scope note + verify all `selected` addresses are figure5/* or
-    doc/chunk/*; verdict label "response-side; out of retrieval-adequacy scope".
-  - C3: every year token appearing in context must be within 1980..2010.
-  - C5: response-side N/A; context-side note that TS-only events exist and are
-    retrievable (they may be excluded by the responder, not the assembler).
-Emit `results/challenge_adequacy.json` + per-budget markdown table.
-done-check: runs from existing results; prints per-impl adequacy summary.
-
-### W7  Final consistency pass
-status: partially done 2026-11-07 (README challenge-harness section added;
-WORKQUEUE statuses updated; harness committed+pushed. Remaining:
-ASM_DESIGN.md review amendments + scratch-crop cleanup)
-depends: W6
- 1. README: challenge-harness section — DONE 2026-11-07.
- 2. ASM_DESIGN.md: still TO-DO — append the three review amendments
-    (candidate-listing layer; listing token-list cap; `fits_budget` field in
-    §6.3) marked "Added in review, 2026-11-07" — do not rewrite the file.
-    PRIORITY RAISED: the W6 C4=0/13 finding is the empirical motivation.
- 3. Scratch-crop cleanup per §I — still TO-DO (crops kept on disk).
- 4. Full §V green on benchmark.py + challenge commands; update statuses here,
-    commit. — DONE 2026-11-07 (results artifacts also committed).
-
-### W8  Stretch (only after W7)
-- Baseline comparison: same sweep on a text-only fixture (event units disabled) to
-  quantify the sufficiency drop against criteria 2/4 (ASM_DESIGN §12 baseline).
-- Multiple repeats with min/median/max per (impl, budget).
+(none)
 
 ---
 
+## The Queue
+
+### C1  Curation audit → docs/IDEAS_LEDGER.md
+status: todo
+depends: nothing (predecessor is absorbed and readable)
+Read-before-classify audit of BOTH trees; conservation first.
+  1. Walk `performance_benchmarking/` and `accuracy_benchmarking/` (docs
+     before code). For every substantive file/dir assign exactly one label:
+     KEEP (active, authoritative) / ARCHIVE (superseded but historical
+     value) / PRUNE (outdated or unused) / MERGE (fold content into another
+     doc/file). NEVER classify without reading. Known pointers — verify all
+     by reading: predecessor design docs (ARCHITECTURE, ASM_SPECIFICATION,
+     BENCHMARK_PROTOCOL, DIRECTORY_STRUCTURE, LANGUAGE_BENCHMARKS,
+     PROJECT_PLAN, WEB_INTERFACE, AGENTS, its README/WORK_QUEUE), the
+     milestone findings series, CONTEXT_PRESSURE_PILOT,
+     CRITERION_EVALUATION_FINDINGS, PROJECT_VERIFICATION, IMPLEMENTATION_LOGs;
+     predecessor benchmarks trio + formats/ASM_BENCHMARK_V1.md (.asmbench) +
+     fixtures (inputs/expected outputs) + C/Rust/Go benchmark mains;
+     asm/engine.py; app/ (web interface: server/controller/system_log/
+     storage, interface js/css/html); tests/ (8 test files); accuracy track
+     harness + artifacts (all KEEP candidates).
+  2. Create `docs/IDEAS_LEDGER.md` at repo root of docs/: (a) IDEA LIST —
+     every valuable idea found in either project, one line each with
+     provenance and where it now lives; (b) ACTION LIST — per file/dir the
+     chosen label + reason + destination; (c) FLAGS — anything uncertain.
+  3. Record the consolidation-state baseline in §I of this file is done;
+     ledger becomes the moving inventory henceforth.
+done-check: docs/IDEAS_LEDGER.md exists; every directory-level entry of both
+  trees classified; ≥0 PRUNE items each have a reason; no idea lost (cross-
+  check the idea list against the action list).
+
+### C2  Target layout decision (record, then execute in C3..C6)
+status: todo
+depends: C1
+Default (already partially documented in ASM_DESIGN.md "Repository layout"):
+  - Directory names stay: `accuracy_benchmarking/`, `performance_benchmarking/`,
+    `deploy-package/` (keep user's naming; avoid rename churn).
+  - NEW repo-root `docs/`: `IDEAS_LEDGER.md`, `archive/` (superseded docs,
+    status headers), `findings-index.md` (chronological, both projects,
+    one line each).
+  - Root: single README.md (merged entry point), single ASM_DESIGN.md spec.
+  - Predecessor root docs AGENTS/ARCHITECTURE/ASM_SPECIFICATION/
+    BENCHMARK_PROTOCOL/DIRECTORY_STRUCTURE/LANGUAGE_BENCHMARKS/PROJECT_PLAN/
+    WEB_INTERFACE/WORK_QUEUE/README -> docs/archive/ (status headers); any
+    still-actionable instruction does not silently die: alive items move
+    into this queue's C-items or W-items explicitly.
+  - Predecessor internals (benchmarks/, asm/, app/, tests/, data/) stay in
+    place; organization inside the tracks, not at their root names.
+If C1 shows a materially better layout (e.g. crunching benchmarks/ dirs),
+write the deviation here + ASM_DESIGN + user-visible note BEFORE executing.
+done-check: layout recorded in queue; deviations documented; user-visible
+  note exists for any non-default choice.
+
+### C3  Documentation consolidation (one spec, one README, archive the rest)
+status: todo
+depends: C1, C2
+  1. Root README.md: merge accuracy-track README content (challenge-harness
+     section, run commands) + predecessor pointer ("what it contains, how to
+     run its benchmark trio, where its findings live (docs/findings-index)").
+     One "Consolidated project" intro naming all three dirs.
+  2. ASM_DESIGN.md = the ONE specification: reconcile predecessor's
+     ASM_SPECIFICATION.md/ARCHITECTURE.md — extract distinctive valuable
+     ideas (data model differences, benchmark protocol ideas, interface
+     concepts) into ASM_DESIGN with provenance notes, then ARCHIVE the two
+     files; APPLY the three pending review amendments to ASM_DESIGN
+     (candidate-listing layer; listing token-list cap; `fits_budget` field
+     in §6.3) marked "Added in review, 2026-11-07" (W7 leftover — this is
+     the empirical answer to the C4=0/13 adequacy finding).
+  3. Move superseded docs to docs/archive/ per ledger (status headers);
+     predecessor WORK_QUEUE.md gets note "superseded by root WORKQUEUE.md
+     consolidation edition"; its still-valid open items if any are dragged
+     into this queue explicitly (conservation rule §R10).
+  4. docs/findings-index.md: one line per findings/milestone/pilot doc
+     (both projects), chronological, with takeaways worth keeping.
+done-check: no two root-level docs claim spec authority; all archived files
+  have status headers; ledger + findings-index updated; ASM_DESIGN has the
+  three amendments.
+
+### C4  Benchmark protocol + entry-point unification (docs-level)
+status: todo
+depends: C3
+  1. Root README gains ONE consolidated "Running the benchmarks" section:
+     (a) accuracy parity run: `cd accuracy_benchmarking; python benchmark.py;
+     python challenge.py --budgets 150,300,600,1200,2400; python
+     check_challenge.py`; (b) performance run: predecessor trio per
+     benchmarks docs (verify exact commands while reading, do not guess);
+     (c) deploy/package note pointing at deploy-package/ purpose.
+  2. Document the relationship of the two benchmark ideas: predecessor's
+     context-pressure pilot vs accuracy track's budget sweep + adequacy
+     checker cross-reference (same phenomenon, two instruments). If the
+     pilot reveals runnable ideas the accuracy harness lacks, list them as
+     W-items (conservation, not implementation-by default).
+  3. Fixture formats: predecessor `formats/ASM_BENCHMARK_V1.md`(.asmbench)
+     vs accuracy `asm_fixture.json`/asm_input line format — document both in
+     the README/spec; note adapter scope; only unify if genuinely cheap.
+done-check: one consolidated runbook; no contradicting commands; formats
+  documented; ledger updated.
+
+### C5  Hygiene prune (untrack scratch, delete regenerables)
+status: todo
+depends: C1, C2 (ledger decides exact list)
+  1. `git rm --cached` ALL scratch transcription crops in
+     accuracy_benchmarking/challenge-documents/ (keep the 4 images: page_18,
+     page_18_hi, figure5_full, fig5_grid); files remain on disk; extend root
+     .gitignore with matching rules for the new path (keep rules anchored to
+     `challenge-documents/*.png`+negations, or replace with explicit
+     keeper-list approach — pick ONE and make it cover both current paths).
+  2. Delete regenerable artifacts: all `__pycache__/` dirs, remaining
+     accuracy-track built binaries (asm_c.exe, asm_rust.exe, asm_go.exe —
+     rebuilt by `python benchmark.py --build`), any predecessor build
+     leftovers listed in ledger. Tracked-and-dead files per ledger (§R13
+     grep-confirmed) may be deleted outright.
+  3. Keep: oracle files, W1 scratch IMAGES on disk (deferred work), bundle,
+     experiments.jsonl (ignored), all KEEP/ARCHIVE ledger items.
+done-check: git status clean of scratch; §I updated; §V green; ledger
+  reflects every removal.
+
+### C6  Consolidation verification + finish line
+status: todo
+depends: C3, C4, C5
+  1. Re-run full §V (toy parity 4/4; challenge sweep 4/4 MATCH x5 budgets;
+     adequacy report unchanged); rebuild binaries once to prove C5 didn't
+     break the build.
+  2. Update ASM_DESIGN.md "Repository layout" to the FINAL consolidated
+     truth (predecessor paragraph: absorbed + consolidated per ledger names);
+     fix any straggling path references (grep ASM_DESIGN/README/WORKQUEUE
+     for old paths).
+  3. Update §I to post-consolidation inventory; record completion date here;
+     commit + push.
+done-check: §V all green from a cache-less working tree; docs match
+  reality; pushed.
+
+### W1  Lock Figure 5 transcription  (DEFERRED — directive stands)
+status: deferred (user directive 2026-11-07)
+No work. If a future directive resumes it: the §X X1..X7 record + W1 history
+contains the full plan (validator target: exits 0 — 13/13 percentages,
+18/18 zero-years, count exactly 99; fixture rewrite `figure5_events.json` +
+`challenge-documents/oracle-notes.md` with tile-read log and X-resolutions).
+
+### W8  Stretch — after consolidation only
+status: stretch
+    - Baseline comparison: same sweep on a text-only fixture (event units
+      disabled) to quantify the sufficiency drop against criteria 2/4.
+    - Multiple repeats with min/median/max per (impl, budget).
+    - Candidate-listing layer experiments against the C4=0/13 adequacy
+      finding, if the user wants retrieval-layer work after consolidation.
+
+---
+
+## Completed-work record (history; one line each)
+
+- 2026-11-07 Repository restructured by user into accuracy_benchmarking/ +
+  performance_benchmarking/ (nested repo) + deploy-package/; layout
+  documented in ASM_DESIGN.md; commit 758f13c.
+- 2026-11-07 Challenge harness delivered (W2..W6): fixture
+  (mk_fixture.py, question-unit amendment), four parameterized mains with
+  toy fallback (asm_main.py added; cross-impl MATCH in file mode), budget
+  sweep 150/300/600/1200/2400 words with prompt files + criteria checklist
+  for local-model testing (user directive), deterministic adequacy checker
+  (C2 gains with budget, C4=0/13 headline finding). Commit ec8f0df.
+- 2026-11-07 Nested predecessor repo removed by user request; absorbed as
+  plain files; history preserved in previous-history.bundle (tracked);
+  97 MB experiments.jsonl working-tree-only via .gitignore; ASM_DESIGN
+  predecessor section rewritten; scratch-crop untracking discovered as
+  restructure fallout and queued (C5).
+
 ## §H Handoff protocol (for the next agent)
 
-1. Read §Q; scan §E/§I; run §V. Do not skip §V.
-2. Continue the `in_progress` item if present, else first `todo`. Read that item,
-   its dependencies, and the relevant §R rules. Ignore the rest.
-3. §X constraints always apply. If a done-check fails twice: STOP, add a dated line
-   to `challenge-documents/oracle-notes.md` under BLOCKERS, then pick the next todo
-   whose dependencies are green.
-4. After completing an item: flip its status here, append a one-line history entry
-   to oracle-notes.md, re-run §V, update §V's snapshot if it changed.
-5. Never mark anything `blocked` without an entry in BLOCKERS explaining why and
-   what would unblock it.
+1. Read §Q; scan §E/§I; run §V (from `accuracy_benchmarking/`). Do not skip §V.
+2. Continue the first `status: todo` item (consolidation: C1 first unless a
+   listed `in_progress` exists — finish THAT instead). Read that item fully
+   plus §C/rule references it cites; work it one step at a time.
+3. §X constraints and §R rules always apply. Conserve ideas (R10); archive
+   before delete (R9); after moves, refresh references (R14) and re-run §V.
+4. After completing an item: flip its status, append a dated line to the
+   Completed-work record, re-run §V, update snapshots, commit + push.
+5. If a done-check fails twice: STOP, add a dated entry to §B Blockers with
+   what would unblock it, and pick the next todo whose dependencies are met.

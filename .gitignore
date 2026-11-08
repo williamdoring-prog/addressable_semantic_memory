@@ -6,6 +6,11 @@ asm_c_asan
 asm_rust
 asm_go
 
+# Absorbed predecessor project (history exported to a bundle before removal).
+# Its data/results/experiments.jsonl is a 97 MB append log that would dominate
+# the repository; it stays working-tree-only.
+performance_benchmarking/data/results/experiments.jsonl
+
 # challenge-documents: keep only the working images listed in WORKQUEUE.md §I.
 # Everything else is a scratch transcription crop (regenerable; deleted in W7).
 challenge-documents/*.png

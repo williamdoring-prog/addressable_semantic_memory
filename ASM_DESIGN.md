@@ -36,14 +36,25 @@ specification (§5.2 and §6).
 
 ### `performance_benchmarking/` — predecessor track
 
-The earlier sibling project, retained as an independent nested repository
-with its own git history (`app/`, `asm/`, `benchmarks/`, `data/`, `docs/`,
-`tests/`, and its own README, ARCHITECTURE and specification documents). It
-holds the prior multi-language performance benchmarking of the same memory
-idea — timing and throughput measurements rather than agreement and
-retrieval-adequacy checks. Keep it as prior art and historical context; do
-not couple its code to `accuracy_benchmarking/` and do not edit its
-contents as part of the accuracy track's work.
+The earlier sibling project, now absorbed into this repository as plain
+files (2026-11-07). The nested repository that came with the move was
+removed; its complete history (`master` at `0dd9839`, 3 commits) was
+exported to `performance_benchmarking/previous-history.bundle` beforehand
+and is itself tracked here, so the prior work stays fully recoverable
+(`git clone performance_benchmarking/previous-history.bundle`). Contents:
+`app/` (web interface), `asm/`, `benchmarks/` (standard suite,
+context-pressure pilot, `.asmbench` fixture format), `data/`, `docs/`
+(implementation logs and findings), `tests/`, and its own README,
+ARCHITECTURE, and specification documents. It holds the prior
+multi-language performance benchmarking of the same memory idea — timing
+and throughput measurements rather than agreement and retrieval-adequacy
+checks. Keep it as prior art of record: do not couple its code to
+`accuracy_benchmarking/` or edit its contents as part of the accuracy
+track until a reconciliation decision merges the trees (user has floated
+one; queued as WORKQUEUE W9). Version-control note:
+`data/results/experiments.jsonl` is a 97 MB append-only experiment log,
+deliberately excluded from version control by the root `.gitignore` — it
+stays working-tree-only.
 
 ### `deploy-package/` — release staging (reserved)
 
