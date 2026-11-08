@@ -1,0 +1,13 @@
+{
+  "input_id": "small-factual",
+  "original_source_tokens": 17,
+  "question_tokens": 7,
+  "retrieved_addresses": ["a02", "a01"],
+  "lookups": [{"address": "a02", "text": "The telescope weight is 4 kilograms."}],
+  "expanded": [
+    {"address": "a02", "text": "The telescope weight is 4 kilograms."},
+    {"address": "a01", "text": "Nera built the copper telescope."}
+  ],
+  "context": "The telescope weight is 4 kilograms. Nera built the copper telescope.",
+  "context_tokens": 11
+}

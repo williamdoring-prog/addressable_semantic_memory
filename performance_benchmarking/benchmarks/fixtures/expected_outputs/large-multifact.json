@@ -1,0 +1,14 @@
+{
+  "input_id": "large-multifact",
+  "original_source_tokens": 78,
+  "question_tokens": 10,
+  "retrieved_addresses": ["l01", "l04", "l06", "l07", "l02", "l05", "l10", "l11", "l12"],
+  "lookups": [{"address": "l02", "text": "It measures humidity and temperature."}],
+  "expanded": [
+    {"address": "l01", "text": "The blue sensor is mounted on the north wall."},
+    {"address": "l04", "text": "The red sensor is mounted on the south wall."},
+    {"address": "l02", "text": "It measures humidity and temperature."}
+  ],
+  "context": "The blue sensor is mounted on the north wall. The red sensor is mounted on the south wall. It measures humidity and temperature.",
+  "context_tokens": 23
+}

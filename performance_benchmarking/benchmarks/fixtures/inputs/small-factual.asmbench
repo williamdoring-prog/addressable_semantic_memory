@@ -1,0 +1,8 @@
+ASM-BENCH-V1
+id	small-factual
+budget	12
+question	What is the weight of the telescope?
+lookup	a02
+fragment	a01	Nera built the copper telescope.
+fragment	a02	The telescope weight is 4 kilograms.
+fragment	a03	Store it in a dry cabinet.

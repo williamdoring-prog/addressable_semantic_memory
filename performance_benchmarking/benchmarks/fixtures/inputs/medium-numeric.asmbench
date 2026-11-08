@@ -1,0 +1,11 @@
+ASM-BENCH-V1
+id	medium-numeric
+budget	18
+question	Which container holds lithium sample?
+lookup	m04
+fragment	m01	The cabinet stores glassware.
+fragment	m02	The lithium sample is in container B12.
+fragment	m03	Container B12 weighs 6 grams.
+fragment	m04	A second lithium sample is in container C9.
+fragment	m05	Container C9 weighs 8 grams.
+fragment	m06	Handle every sample with gloves.

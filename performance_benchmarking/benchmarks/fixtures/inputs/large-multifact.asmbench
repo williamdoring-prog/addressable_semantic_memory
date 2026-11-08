@@ -1,0 +1,17 @@
+ASM-BENCH-V1
+id	large-multifact
+budget	25
+question	Where is the blue sensor and what does it measure?
+lookup	l02
+fragment	l01	The blue sensor is mounted on the north wall.
+fragment	l02	It measures humidity and temperature.
+fragment	l03	Calibration occurs each Tuesday.
+fragment	l04	The red sensor is mounted on the south wall.
+fragment	l05	It measures vibration and pressure.
+fragment	l06	The green sensor is stored in drawer 7.
+fragment	l07	The blue sensor uses a 12 volt supply.
+fragment	l08	Humidity readings are recorded every 10 minutes.
+fragment	l09	Temperature units are Celsius.
+fragment	l10	The monitor is in room 204.
+fragment	l11	The north wall faces the courtyard.
+fragment	l12	Reports are saved in the local archive.

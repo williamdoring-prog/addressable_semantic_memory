@@ -1,0 +1,13 @@
+{
+  "input_id": "medium-numeric",
+  "original_source_tokens": 34,
+  "question_tokens": 5,
+  "retrieved_addresses": ["m02", "m04", "m03", "m05", "m06"],
+  "lookups": [{"address": "m04", "text": "A second lithium sample is in container C9."}],
+  "expanded": [
+    {"address": "m02", "text": "The lithium sample is in container B12."},
+    {"address": "m04", "text": "A second lithium sample is in container C9."}
+  ],
+  "context": "The lithium sample is in container B12. A second lithium sample is in container C9.",
+  "context_tokens": 15
+}

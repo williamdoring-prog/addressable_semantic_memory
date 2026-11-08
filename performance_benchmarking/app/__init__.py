@@ -1,0 +1,1 @@
+"""ASM local application package."""
