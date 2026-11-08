@@ -58,17 +58,12 @@ every action logged here; ideas are conserved even when documents move).
   standard_suite.py) — KEEP idea (CLI, fits the directives); classify
   fully in C1.
 - ASM-D10 Named metric framework with full-context baseline and a
-  signature ASM metric (user directive 2026-11-07): Quality Retention =
-  ASM score / full-context score; Compression split into STORAGE
-  (persisted memory) vs ACTIVE context reduction; Retrieval
-  Recall / Precision / Expansion Efficiency; Accuracy per Token
-  (facts per 1000 words; headline plot Task Quality vs Context Words);
-  latency split retrieval/selection vs startup+IO; and SAE (Semantic
-  Access Efficiency) = Quality Retention / active-context fraction,
-  baseline 1.0. Lives in: bench.py (tables 1-3 + ANSWER SUMMARY),
-  defined as WORKQUEUE §R19. Current measured shape (2026-11-07):
-  retention 7% @ 150 -> 31% @ 2400 words; SAE best 13.07 @ 150;
-  full-serve baseline 29/31 oracle facts. — KEEP (authoritative).
+  signature ASM metric (user directive 2026-11-07): Quality Retention
+  against the full-serve baseline, a storage-vs-active compression
+  split, recall/precision/efficiency metrics, accuracy-per-token, a
+  latency split, and SAE (Semantic Access Efficiency). Definitions:
+  WORKQUEUE §R19 (single source); implementation: bench.py (tables 1-3 +
+  ANSWER SUMMARY); measured snapshot: WORKQUEUE §V. — KEEP.
 - ASM-D11 Agent-accessible tool registry: machine-readable
   docs/tools_registry.json (tool_id / invocation / workdir / outputs /
   wall) plus a human-readable table; new CLI tools must add registry
@@ -104,15 +99,25 @@ every action logged here; ideas are conserved even when documents move).
   §R19) and the words-never-tokens harness rule.
 - accuracy_benchmarking/README.md — AMENDED 2026-11-07: the Run section
   now leads with the central CLI (python bench.py) and keeps the
-  piece-level commands as diagnosis; full-serve baseline 29/31 recorded
-  (checker fix of record); stray trailing "# addressable_semantic_memory"
-  artifact line removed; the serious-benchmarking list is tied to the
-  §R17/W8 opt-in rule.
+  piece-level commands as diagnosis (full-serve baseline correction of
+  record lives in this ledger's flags); stray trailing
+  "# addressable_semantic_memory" artifact line removed; the
+  serious-benchmarking list is tied to the §R17/W8 opt-in rule.
 - performance_benchmarking/README.md + AGENTS.md + WEB_INTERFACE.md —
   STAMPED 2026-11-07 with SUPERSEDED/RETIRED banners routing agents to
   the root protocol (early action ahead of C3's full archive; banners
   only — no moves, no deletions; AGENTS.md's still-valid engineering
   rules continue through the root protocol).
+- Documentation dedup pass 2026-11-07 — single authoritative homes:
+  metric definitions = WORKQUEUE §R19 (bench.py's docstring keeps the
+  in-run rendering; ASM_DESIGN §12, ledger ASM-D10, and WORKQUEUE §Q
+  now hold pointers only); the words-never-tokens rule = WORKQUEUE §R4
+  (other mentions are pointers or one user-facing statement); file
+  inventory = WORKQUEUE §I (ASM_DESIGN layout paragraphs are
+  purpose-level only, no file re-listing); measured snapshot values =
+  WORKQUEUE §V (the ledger and README keep dated echoes, never a second
+  definition). Nothing deleted — dedupe is replication-removal; every
+  conserved statement lives at its named home above.
 
 ## Flags
 

@@ -26,21 +26,17 @@ deliberately unnumbered so that section numbers referenced elsewhere
 
 The active implementation and measurement of this design's first concrete
 question: does the addressable-memory retrieval layer preserve the facts a
-consumer needs as the served context shrinks? Contents: four equivalent
-deterministic ASM implementations in Python, C, Rust, and Go (`asm.py`,
-`asm_c.c`+`asm_c.h`+`asm_c_main.c`, `asm.rs`+`asm_main.rs`, `asm.go`+
-`asm_main.go`, `asm_main.py`, run by `benchmark.py`), the challenge harness
-(`challenge.py`, `check_challenge.py`), the NOAA challenge inputs and oracle
-(`challenge-documents/`), the generated fixture files (`asm_fixture.json`,
-`asm_input.txt`), `README.md`, and the committed `results/` artifacts
-(per-budget prompts, criteria checklist, adequacy tables). Piece-level
-harness commands run from inside this directory; the central CLI
-`python bench.py` runs them from the repo root and prints the
-consolidated metric tables (WORKQUEUE §R19, agent registry §R20).
-Layout, adequacy semantics,
-and the word-count (never-"tokens") rule for the harness live in README.md
-and `WORKQUEUE.md`; the design obligations behind them are in this
-specification (§5.2 and §6).
+consumer needs as the served context shrinks? Contents at purpose level:
+four equivalent deterministic ASM implementations (Python/C/Rust/Go), the
+challenge harness, the NOAA challenge inputs and oracle
+(`challenge-documents/`), generated fixture files, and the committed
+`results/` artifacts — the complete file inventory is maintained once, in
+WORKQUEUE §I. Piece-level harness commands run from inside this directory;
+the central CLI `python bench.py` runs them from the repo root and prints
+the consolidated metric tables (WORKQUEUE §R19, agent registry §R20).
+Layout, adequacy semantics, and the harness word-count rule live in
+README.md and `WORKQUEUE.md` (§R4); the design obligations behind them are
+in this specification (§5.2 and §6).
 
 ### `performance_benchmarking/` — predecessor track
 
@@ -49,21 +45,19 @@ files (2026-11-07). The nested repository that came with the move was
 removed; its complete history (`master` at `0dd9839`, 3 commits) was
 exported to `performance_benchmarking/previous-history.bundle` beforehand
 and is itself tracked here, so the prior work stays fully recoverable
-(`git clone performance_benchmarking/previous-history.bundle`). Contents:
-`app/` (web interface), `asm/`, `benchmarks/` (standard suite,
-context-pressure pilot, `.asmbench` fixture format), `data/`, `docs/`
-(implementation logs and findings), `tests/`, and its own README,
-ARCHITECTURE, and specification documents. It holds the prior
-multi-language performance benchmarking of the same memory idea — timing
-and throughput measurements rather than agreement and retrieval-adequacy
-checks. Keep it as prior art of record: do not couple its code to
-`accuracy_benchmarking/`; the 2026-11-07 consolidation queue (WORKQUEUE
-C1..C6) governs reconciliation — predecessor root docs are scheduled for
-archive (C3) and their superseded objectives (browser interface, token
-budgets) are stamped as superseded. Version-control note:
-`data/results/experiments.jsonl` is a 97 MB append-only experiment log,
-deliberately excluded from version control by the root `.gitignore` — it
-stays working-tree-only.
+(`git clone performance_benchmarking/previous-history.bundle`). Its
+contents (web app, engine, benchmark suites, data, findings docs, tests)
+are inventoried once in WORKQUEUE §I, not re-listed here. It holds the
+prior multi-language performance benchmarking of the same memory idea —
+timing and throughput measurements rather than agreement and
+retrieval-adequacy checks. Keep it as prior art of record: do not couple
+its code to `accuracy_benchmarking/`; the 2026-11-07 consolidation queue
+(WORKQUEUE C1..C6) governs reconciliation — predecessor root docs are
+scheduled for archive (C3) and their superseded objectives (browser
+interface, token budgets) are stamped as superseded. Version-control
+note: `data/results/experiments.jsonl` is a 97 MB append-only experiment
+log, deliberately excluded from version control by the root `.gitignore`
+— it stays working-tree-only.
 
 ### `deploy-package/` — release staging (reserved)
 
@@ -635,16 +629,11 @@ A smaller representation is useful only if it preserves enough information to gu
 
 Benchmark against a no-ASM baseline using the same source material, model, tokenizer, prompt budget, and answer criteria. Record exact experimental conditions. Report exact-match scoring separately from semantic or rubric-based evaluation.
 
-The active benchmark suite operationalizes a named metric framework —
-Quality Retention, active-context Compression, Retrieval Recall /
-Precision / Expansion Efficiency, Accuracy per token (facts per 1000
-words), latency splits, and Semantic Access Efficiency (SAE) — via the
-repo-root central CLI `bench.py`; authoritative definitions live in
-WORKQUEUE §R19. For the accuracy track the context-budget unit is
-whitespace-delimited words (`[A-Za-z0-9]+` runs), never tokens;
-tokenizer-specific
-measurements (this section, §5) apply to storage-side token-length
-lists, not to the harness's budget accounting.
+The active benchmark suite operationalizes the named metric framework via
+the repo-root central CLI `bench.py`; authoritative definitions live in
+WORKQUEUE §R19 (budget unit: words per §R4 — token-specific
+measurements in this spec, §5, apply to storage-side token-length lists,
+not to the harness's budget accounting).
 
 ## 13. Initial implementation sequence
 

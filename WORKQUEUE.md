@@ -44,11 +44,8 @@ utility — repo-root `bench.py` — runs the performance and/or accuracy
 benchmarks with clear, human-readable console output. Every printed number
 answers the central question: *"Can ASM preserve or improve task performance
 while requiring substantially less context, memory, compute, or retrieval?"*
-The metric framework the output implements is defined in §R19 (Quality
-Retention, Compression active-vs-storage, Recall/Precision/Expansion
-Efficiency, Accuracy per 1000 words, latency split, SAE). Agents discover
-commands via the machine-readable tool registry (`docs/tools_registry.json`,
-refreshed by `python bench.py registry`; rule §R20).
+Authoritative metric definitions: §R19; agent command discovery:
+`docs/tools_registry.json` (§R20); current measured state: §V.
 
 The queue below follows: C1..C6 = consolidation (active), W1 = deferred
 transcription (user directive stands), W8 = stretch. §C rules govern how
@@ -218,8 +215,8 @@ Consolidation rules (user directive 2026-11-07; §C):
 
 Metric framework (user directive 2026-11-07; implemented by `bench.py`):
 
-19. **Metric definitions** (context unit = WORD, never token; words are
-    whitespace-delimited `[A-Za-z0-9]+` runs):
+19. **Metric definitions** (budget/context unit as §R4: whitespace-
+    delimited WORDS, never tokens):
     - Quality Retention = ASM Task Score / Full-Context Task Score. Task
       score proxy (no LLM in the harness) = oracle facts passing the
       adequacy screens; the full-serve row is 100% by construction.
@@ -504,6 +501,11 @@ status: stretch
   records the 29/31 baseline correction; predecessor entry docs
   (README/AGENTS/WEB_INTERFACE) stamped SUPERSEDED/RETIRED so any agent
   entering performance_benchmarking/ routes to the root protocol.
+- 2026-11-07 Documentation dedup: single authoritative homes assigned —
+  §R19 metric definitions, §R4 word rule, §I file inventory, §V measured
+  state; ASM_DESIGN/ledger/README duplicates turned into pointers
+  (replication-removal only, nothing deleted); conservation logged in
+  the ledger. Commit 4896a78 preceded this pass (doc CONSISTENCY).
 
 ## §H Handoff protocol (for the next agent)
 
