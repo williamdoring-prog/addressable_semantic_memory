@@ -1,0 +1,350 @@
+{
+  "version": 1,
+  "repo": "asm_deploy_package",
+  "word_unit": "words (whitespace-delimited [A-Za-z0-9]+ runs), never tokens",
+  "tools": [
+    {
+      "tool_id": "asm.create_scope",
+      "invocation": "python -m asm_tool --op serve --question \"<query>\" --budget <N> --store <path>",
+      "category": "asm",
+      "description": "Create a new bounded semantic context (scope). Initializes an empty scope with optional parent and initial context.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier for the new scope (e.g. 'project/setup', 'bug/investigation')"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Brief description of the scope's purpose"
+          },
+          "initial_context": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": {"type": "string"},
+                "text": {"type": "string"}
+              },
+              "required": ["address", "text"]
+            },
+            "description": "Optional initial units to populate the scope with"
+          },
+          "parent_scope": {
+            "type": "string",
+            "description": "Optional identifier of a parent scope for hierarchical organization"
+          }
+        },
+        "required": ["scope_id", "purpose"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "purpose"],
+      "optional_parameters": ["initial_context", "parent_scope"],
+      "expected_result": {
+        "scope_id": "string",
+        "status": "created",
+        "initial_context_count": "integer",
+        "hierarchy": "parent_scope or null"
+      }
+    },
+    {
+      "tool_id": "asm.add",
+      "invocation": "python -m asm_tool --op serve --question \"<query>\" --budget <N> --store <path>",
+      "category": "asm",
+      "description": "Add information to an existing scope. Preserves semantic information and creates addressable context where appropriate.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to add information to"
+          },
+          "address": {
+            "type": "string",
+            "description": "Stable address for the new unit (e.g. 'feature/login-page')"
+          },
+          "text": {
+            "type": "string",
+            "description": "The content/information to add to the scope"
+          },
+          "parent": {
+            "type": "string",
+            "description": "Optional parent address within the scope for nested organization"
+          }
+        },
+        "required": ["scope_id", "address", "text"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "address", "text"],
+      "optional_parameters": ["parent"],
+      "expected_result": {
+        "scope_id": "string",
+        "status": "added",
+        "address": "string",
+        "abstraction_level": "level within scope hierarchy"
+      }
+    },
+    {
+      "tool_id": "asm.query",
+      "invocation": "python -m asm_tool --op serve --question \"<query>\" --budget <N> --store <path>",
+      "category": "asm",
+      "description": "Retrieve the most relevant context for a query under a word budget. Prefers the smallest useful amount of context.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to query within"
+          },
+          "question": {
+            "type": "string",
+            "description": "The task query, single line"
+          },
+          "budget": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "WORD budget (rule R4), never tokens"
+          },
+          "abstraction_depth": {
+            "type": "integer",
+            "description": "Depth of abstraction to search (default: 0 = full scope)"
+          }
+        },
+        "required": ["scope_id", "question", "budget"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "question", "budget"],
+      "optional_parameters": ["abstraction_depth"],
+      "expected_result": {
+        "question": "string",
+        "context": "string (served context text)",
+        "context_words": "integer (word count of served context)",
+        "selected": [
+          {
+            "address": "string",
+            "score": "integer (term overlap score)"
+          }
+        ],
+        "retrieved_addresses": ["string"],
+        "original_source_words": "integer"
+      }
+    },
+    {
+      "tool_id": "asm.get",
+      "invocation": "python -m asm_tool --op inspect --address <addr> --store <path>",
+      "category": "asm",
+      "description": "Retrieve deeper information using an address or context identifier. Supports multiple abstraction levels where the underlying information is available.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope containing the address"
+          },
+          "address": {
+            "type": "string",
+            "description": "Stable unit ID to resolve (section 6.1)"
+          },
+          "depth": {
+            "type": "integer",
+            "description": "Abstraction depth (0 = direct unit, higher = deeper detail)"
+          }
+        },
+        "required": ["scope_id", "address"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "address"],
+      "optional_parameters": ["depth"],
+      "expected_result": {
+        "address": "string",
+        "text": "string (verbatim unit text)",
+        "words": "integer (word count of resolved text)",
+        "abstraction_depth": "integer",
+        "has_deeper": "boolean (whether deeper detail exists below current level)"
+      }
+    },
+    {
+      "tool_id": "asm.inspect",
+      "invocation": "python -m asm_tool --op inspect --address <addr> --store <path>",
+      "category": "asm",
+      "description": "Inspect the health of the active scope. Identifies conditions such as scope being too broad/narrow, unrelated topics mixed together, stale summaries, referenced context missing, conflicting information, and more.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to inspect"
+          },
+          "address": {
+            "type": "string",
+            "description": "Optional: focus inspection on a specific address within the scope"
+          },
+          "detail_level": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "Level of detail for the inspection report"
+          }
+        },
+        "required": ["scope_id"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id"],
+      "optional_parameters": ["address", "detail_level"],
+      "expected_result": {
+        "scope_id": "string",
+        "status": {
+          "type": "string",
+          "enum": ["healthy", "too_broad", "too_narrow", "mixed_topics", "stale_summary", "missing_context", "conflicting_info", "rebuild_needed"]
+        },
+        "summary": "string (compressed working representation)",
+        "issues": [
+          {
+            "type": "string",
+            "description": "Identified issue type"
+          },
+          {
+            "type": "string",
+            "description": "string (human-readable description)"
+          }
+        ],
+        "recommendations": [
+          {
+            "action": "string (e.g. 'split', 'merge', 'narrow', 'broaden', 'rebuild')",
+            "rationale": "string (why this action is recommended)"
+          }
+        ]
+      }
+    },
+    {
+      "tool_id": "asm.adjust_scope",
+      "invocation": "python -m asm_tool --op adjust_scope --address <addr> --operation <op> --store <path>",
+      "category": "asm",
+      "description": "Allow an agent to adjust context boundaries. Support operations: split, merge, narrow, broaden, rebuild. Do not silently destroy context.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to adjust"
+          },
+          "address": {
+            "type": "string",
+            "description": "Address or boundary to operate on"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["split", "merge", "narrow", "broaden", "rebuild"],
+            "description": "The adjustment operation to perform"
+          },
+          "preserve": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Addresses or summaries to preserve through the adjustment"
+          }
+        },
+        "required": ["scope_id", "address", "operation"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "address", "operation"],
+      "optional_parameters": ["preserve"],
+      "expected_result": {
+        "scope_id": "string",
+        "operation": "string",
+        "status": "string (e.g. 'ok', 'partially_applied', 'need_more_info')",
+        "new_boundaries": {
+          "type": "object",
+          "description": "Resulting scope boundary changes"
+        },
+        "preserved": {
+          "type": "integer",
+          "description": "Number of addresses/summaries preserved"
+        }
+      }
+    },
+    {
+      "tool_id": "asm.summarize",
+      "invocation": "python -m asm_tool --op summarize --scope_id <id> --budget <N> --store <path>",
+      "category": "asm",
+      "description": "Create or update a compressed working representation of a scope. The summary preserves references to deeper addressable information whenever possible.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to summarize"
+          },
+          "budget": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "WORD budget for the summary"
+          },
+          "focus": {
+            "type": "string",
+            "description": "Optional focus topic to prioritize in the summary"
+          }
+        },
+        "required": ["scope_id", "budget"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id", "budget"],
+      "optional_parameters": ["focus"],
+      "expected_result": {
+        "scope_id": "string",
+        "summary": "string (compressed representation)",
+        "context_words": "integer (words in summary)",
+        "preserved_addresses": ["string (addresses referencing deeper detail)"],
+        "abstraction_level": "integer",
+        "status": "string (e.g. 'updated', 'created')"
+      }
+    },
+    {
+      "tool_id": "asm.recover",
+      "invocation": "python -m asm_tool --op recover --scope_id <id> --store <path>",
+      "category": "asm",
+      "description": "Provide a context recovery workflow for an agent that suspects it has lost track of the project or current task. Helps the agent inspect the active scope, identify missing/conflicting context, retrieve relevant summaries and deeper detail, and rebuild a coherent working context.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope_id": {
+            "type": "string",
+            "description": "Identifier of the scope to recover"
+          },
+          "check_active": {
+            "type": "boolean",
+            "description": "Whether to inspect the current active scope first"
+          },
+          "rebuild": {
+            "type": "boolean",
+            "description": "Whether to attempt full context rebuild"
+          }
+        },
+        "required": ["scope_id"],
+        "additionalProperties": false
+      },
+      "required_parameters": ["scope_id"],
+      "optional_parameters": ["check_active", "rebuild"],
+      "expected_result": {
+        "scope_id": "string",
+        "active_scope_inspection": {
+          "address": "string or null",
+          "status": "string",
+          "issues": ["string"]
+        },
+        "missing_context": ["string (addresses or topics)"],
+        "conflicting_context": ["string (addresses or topics)"],
+        "relevant_summary": "string or null",
+        "deeper_detail": ["string (addresses)"],
+        "rebuild_steps": [
+          {
+            "step": "integer",
+            "action": "string (inspect, retrieve, adjust, rebuild)",
+            "description": "string (what to do)"
+          }
+        ],
+        "coherent_context": "string or null",
+        "ready_to_continue": "boolean"
+      }
+    }
+  ]
+}

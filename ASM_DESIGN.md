@@ -61,21 +61,35 @@ note: `data/results/experiments.jsonl` is a 97 MB append-only experiment
 log, deliberately excluded from version control by the root `.gitignore`
 — it stays working-tree-only.
 
-### `deploy-package/` — release staging (reserved)
+### `deploy-package/` — portable ASM integration package
 
-Populated by `python bench.py package` (first assembled 2026-11-08).
-Reserved as the staging area where a deployable release
-package is assembled: the central CLI `bench.py`, the accuracy-track
-sources (including the `asm_tool.py` LLM tool interface), the
-fixture set and runner needed to reproduce a measurement run, and the
-minimal documentation to operate it — packaged as one self-contained
-deliverable. Two packaging notes: the volatile `results/challenge_results.json`
-(per-run timings) is deliberately excluded so `package --check` never
-reports timing-induced drift, and the
-predecessor track stays excluded (prior art of record — recover it from
-`performance_benchmarking/previous-history.bundle` in the source
-repository).
+The deploy package is a clean, production-oriented distribution of ASM for integration into other AI development projects. It is intentionally separate from the repository's benchmarking and research infrastructure.
 
+The package contains **no benchmarks, benchmark results, challenge datasets, test harnesses, experimental fixtures, or performance-testing content**. Those remain in the source repository and are not required to use ASM as a context-management system.
+
+The package is organized around two primary components:
+
+- `tool-registry.json` — a model-facing registry describing the available ASM tool handles, their purpose, inputs, outputs, and usage constraints. An AI agent can use these handles to inspect, manage, retrieve, expand, and otherwise work with an ASM-scoped context.
+
+- `asm/` — a self-contained ASM integration directory intended to be copied directly into another AI development project. It contains the ASM implementation, supporting modules, documentation, and the interfaces required for an agent or host application to apply ASM to its own context.
+
+The intended deployment model is:
+
+```text
+target-ai-project/
+├── asm/
+│   ├── ...
+│   └── documentation/
+└── tool-registry.json
+```
+
+After installation, the host project can register the ASM tools with its agent environment. The agent can then use ASM as an externalized, addressable context layer rather than relying exclusively on its active conversation or prompt context.
+
+ASM is responsible for managing an **ASM-scoped context**: storing addressable information, exposing compact representations, tracking available detail, and retrieving or expanding information when additional context is needed. The host application remains responsible for model inference, orchestration, and final context assembly.
+
+The deploy package should remain portable and minimally coupled to the ASM research repository. A project adopting ASM should not need the benchmark framework or experimental data in order to use the core memory and context-management capabilities.
+
+The source repository remains the authoritative location for research, benchmarking, validation, and further development. `deploy-package/` is the integration-ready distribution surface.
 ---
 
 ## 1. Executive summary

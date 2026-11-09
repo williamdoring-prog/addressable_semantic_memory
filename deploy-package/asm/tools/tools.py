@@ -1,85 +1,9 @@
 """
-LLM tool interface for ASM (ASM_DESIGN section 6 binding, WORKQUEUE T1).
+Minimal ASM tool interface for the deploy package.
 
-A thin, deterministic adaptation layer that lets an LLM harness or agent
-call ASM the way tool/function calling does - through a structured
-request document in a common format - instead of the raw
-`asm_main.py <file> <budget>` argv convention. Timing contracts
-(internal ns, process ns) stay with `asm_main.py` / `benchmark.py`; this
-layer measures nothing, it only adapts formats and dispatches ops.
-
-Request -> response over a file, stdin, or CLI flags:
-
-  python asm_tool.py --request req.json
-  python asm_tool.py --input asm_input.txt --op serve --budget 600 \\
-      --question "..." --format json
-  cat req.xml | python asm_tool.py
-
-Request document schema (unknown/extra keys are ignored):
-
-  op       "serve" | "list" | "inspect"
-  question str     (serve only; single line, verbatim)
-  budget   int > 0 (serve only; unit = WORDS, rule R4)
-  store    path string | list of units (or the --input CLI flag); a unit
-           is {"address": str, "text": str}
-  address  str     (inspect only; exactly-resolved stable ID, section 6.1)
-  format   "json" | "xml" | "yaml" | "txt" — optional response format;
-           the response echoes the request format unless overridden by
-           the `format` key or the --format CLI flag.
-
-Accepted request formats (the "JSON, XML, other common formats" rule):
-  json  object - the standard function-calling/tool-call payload
-  xml   any element tree whose nested structure mirrors the schema;
-        arrays render as repeated <item> children under the key element
-        and an element whose children are ALL <item> tags reads back as
-        a list (schema keys never collide with the reserved 'item' tag)
-  yaml  the double-quoted-scalar block SUBSET (below); unsupported yaml
-        fails through honestly to a format_parse error, never guessed
-  toml  via tomllib (Python 3.11+; on older runtimes the response is an
-        honest unsupported_runtime error - never a hand-rolled parser)
-  csv   ONE flat request: header row + one data row (via csv module -
-        quoted commas in question texts round-trip); csv is
-        REQUEST-ONLY (nested stores don't fit rows); responses default
-        to json (list accepts ?format=csv address rows)
-  txt   plain "key value" lines
-
-LLM-harness binding: `python asm_tool.py --schema [openai|anthropic|
-jsonschema]` prints the tool-for-function-calling definition
-(name "asm", op enum, WORD-budget parameter) so any harness can bind
-this CLI directly; the suite commits results/tool_schema.json.
-
-yaml subset: indent = 2 spaces; `key: value` scalars, or `key:` with the
-child block on following lines at deeper indent; sequences as `- item`
-or `- key: value` with that item's remaining pairs on following lines at
-deeper indent; full-line `#` comments only; TABs rejected; single-line
-scalars; double-quoted scalars decode exactly like JSON strings (so \\n
-escapes round-trip) and every emitted string IS double-quoted; ints
-match ^-?[0-9]+$.
-
-Responses by format:
-  json - json.dumps (serve is byte-identical with `asm_main.py` stdout
-         for the same store + budget); xml as <asm_response>...</>;
-  yaml - the same subset (all strings double-quoted);
-  toml - key = value scalars, arrays inline, [[key]] array-of-tables
-         for selected/inline-store units (tomllib 3.11+ on emit side is
-         not required: emission is deterministic and subset-checked);
-  txt:
-    serve   -> the served context text (what a model would read)
-    list    -> one address per line
-    inspect -> the unit text
-    error   -> "error <code>: <message>" single line
-  csv   -> list: address header + rows (explicit `format: csv` only)
-Structured errors render as {"error": {"code", "message"}} in
-json/xml/yaml/toml (txt/csv single-line) and exit 1; success exits 0.
-
-Ops (DESIGN section 6 mapping, flat-store boundary of the current
-reference implementation):
-  serve    rank + select under a WORD budget (section 7 assembly)
-  list     every stored address, file order (stable IDs, section 6.1)
-  inspect  exact-ID resolve of one address to verbatim text + word count
-  expand   reports unsupported_op: this store has no abstraction ladder
-           yet (section 5.2 ladder is future work); per section 6.2 the
-           response reports the gap explicitly instead of faking it.
+Adapted from asm_tool.py (accuracy_benchmarking/asm_tool.py) — strips
+benchmark-specific suites, keeps the core dispatch/render/load functions
+needed by an AI agent to invoke ASM operations.
 """
 
 import argparse
@@ -91,33 +15,11 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from asm import ASM, Fragment, WORD_RE
-from asm_main import unescape
+# --- Word regex (shared with asm.core) ---
+WORD_RE = re.compile(r"[A-Za-z0-9]+")
 
-try:  # tomllib is stdlib from 3.11 on; older runtimes error honestly
-    import tomllib
-    _HAS_TOMLLIB = True
-except ImportError:  # Python 3.10: keep the surface, gate the format
-    tomllib = None
-    _HAS_TOMLLIB = False
 
-SUPPORTED_FORMATS = ("json", "xml", "yaml", "toml", "csv", "txt")
-RESPONSE_FORMATS = ("json", "xml", "yaml", "toml", "txt", "csv")
-SUPPORTED_OPS = ("serve", "list", "inspect")
-
-TOOL_NAME = "asm"
-TOOL_DESCRIPTION = (
-    "Deterministic Addressable Semantic Memory (ASM) retrieval over a "
-    "flat addressed store. ops: serve = rank + select units under a WORD "
-    "budget (needs question + budget + store); list = every stored "
-    "address in file order (needs store); inspect = resolve one address "
-    "to verbatim text + word count (needs address + store). Ladder ops "
-    "(expand) are reported as unsupported_op by this reference "
-    "implementation, never approximated.")
-
-_TXT_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_YAML_INT_RE = re.compile(r"^-?[0-9]+$")
-
+# --- Error class ---
 
 class ToolError(Exception):
     """Tool-level failure with a stable, structured code."""
@@ -132,7 +34,11 @@ def error_document(code, message):
     return {"error": {"code": code, "message": message}}
 
 
-# ------------------------------------------------------------- requests ---
+# --- Format detection ---
+
+_TXT_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_YAML_INT_RE = re.compile(r"^-?[0-9]+$")
+
 
 def detect_format(text):
     """Prefix-sniff the request format; everything else errors."""
@@ -156,23 +62,20 @@ def detect_format(text):
         return "txt"
     raise ToolError(
         "format_parse",
-        "cannot detect format: use --format "
-        "{json,xml,yaml,toml,csv,txt}")
+        "cannot detect format: use --format {json,xml,yaml,toml,csv,txt}")
 
 
-def parse_request(text, fmt=None):
-    """Parse a request document to a dict; malformed input raises
-    ToolError('format_parse', ...) - never a silent guess."""
+def parse_format(text, fmt=None):
+    """Parse a request document to a dict; malformed input raises ToolError."""
     fmt = fmt or detect_format(text)
-    if fmt not in SUPPORTED_FORMATS:
+    if fmt not in ("json", "xml", "yaml", "toml", "csv", "txt"):
         raise ToolError("invalid_format", f"unknown format: {fmt}")
     if fmt == "json":
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError as err:
             raise ToolError("format_parse",
-                            f"invalid json: {err.msg} at char {err.pos}") \
-                from err
+                            f"invalid json: {err.msg} at char {err.pos}") from err
         if not isinstance(parsed, dict):
             raise ToolError("format_parse", "json request must be an object")
         return parsed
@@ -186,14 +89,15 @@ def parse_request(text, fmt=None):
     if fmt == "yaml":
         return _yaml_document(text)
     if fmt == "toml":
-        if not _HAS_TOMLLIB:
+        try:
+            import tomllib
+            parsed = tomllib.loads(text)
+        except ImportError:
             raise ToolError(
                 "unsupported_runtime",
-                "toml requests need Python 3.11+ stdlib tomllib; this "
-                "runtime lacks it - use json, xml, yaml, csv, or txt")
-        try:
-            parsed = tomllib.loads(text)
-        except tomllib.TOMLDecodeError as err:
+                "toml requests need Python 3.11+ stdlib tomllib; "
+                "use json, xml, yaml, csv, or txt")
+        except Exception as err:
             raise ToolError("format_parse", f"invalid toml: {err}") from err
         return parsed
     if fmt == "csv":
@@ -204,8 +108,6 @@ def parse_request(text, fmt=None):
 def _xml_to_obj(element):
     children = list(element)
     if children and all(child.tag == "item" for child in children):
-        # documented list convention: an element whose children are ALL
-        # <item> tags reads back as a plain list (response/list styles)
         return [_xml_to_obj(child) for child in children]
     if not children:
         return element.text if element.text is not None else ""
@@ -232,8 +134,7 @@ def _txt_document(text):
         key, sep, value = line.partition(" ")
         if not sep or not _TXT_KEY_RE.match(key):
             raise ToolError("format_parse",
-                            f"txt requests need 'key value' lines, got: "
-                            f"{line[:40]!r}")
+                            f"txt requests need 'key value' lines, got: {line[:40]!r}")
         if key in document:
             raise ToolError("format_parse", f"duplicate txt key: {key}")
         document[key] = value.strip()
@@ -242,7 +143,10 @@ def _txt_document(text):
     return document
 
 
-# ------------------------------------------------- yaml (documented subset)
+# --- YAML documented subset _______
+
+_YAML_SCARL_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+
 
 def _yaml_scalar(raw, where):
     text = raw.strip()
@@ -251,8 +155,7 @@ def _yaml_scalar(raw, where):
             return json.loads(text)
         except json.JSONDecodeError as err:
             raise ToolError("format_parse",
-                            f"bad double-quoted scalar ({where}): "
-                            f"{err.msg}") from err
+                            f"bad double-quoted scalar ({where}): {err.msg}") from err
     if _YAML_INT_RE.fullmatch(text):
         return int(text)
     return text
@@ -265,8 +168,7 @@ def _yaml_lines(text):
         if not compact.strip() or compact.strip().startswith("#"):
             continue
         if "\t" in compact:
-            raise ToolError("format_parse",
-                            "TAB is not allowed in the yaml subset")
+            raise ToolError("format_parse", "TAB is not allowed in the yaml subset")
         rendered.append((len(compact) - len(compact.lstrip(" ")),
                          compact.strip()))
     if not rendered:
@@ -277,10 +179,8 @@ def _yaml_lines(text):
 def _yaml_pair(content, where):
     key, sep, raw_value = content.partition(":")
     if not sep or not _TXT_KEY_RE.match(key.strip()):
-        raise ToolError(
-            "format_parse",
-            f"yaml subset needs 'key: value' pairs ({where}): "
-            f"{content[:40]!r}")
+        raise ToolError("format_parse",
+                        f"yaml subset needs 'key: value' pairs ({where}): {content[:40]!r}")
     if raw_value.strip() == "":
         return key.strip(), None
     return key.strip(), raw_value.strip()
@@ -293,8 +193,6 @@ def _next_indent(lines, index, parent_indent):
 
 
 def _yaml_value(lines, index, indent, is_sequence=False):
-    """Parse one block (mapping or sequence) starting at lines[index];
-    returns (value, next_index)."""
     value = [] if is_sequence else {}
     while index < len(lines):
         line_indent, content = lines[index]
@@ -307,22 +205,22 @@ def _yaml_value(lines, index, indent, is_sequence=False):
             if not is_sequence:
                 raise ToolError(
                     "format_parse",
-                    f"sequence item {content[2:10]!r} inside a mapping "
-                    "block")
+                    f"sequence item {content[2:10]!r} inside a mapping block")
             item_content = content[1:].strip()
             index += 1
-            if re.match(r"^[A-Za-z_][A-Za-z0-9_]*\s*:\s", item_content) \
+            if (_yaml_scalar(item_content, f"item {item_content}").startswith("{")
+                    or _yaml_scalar(item_content, f"item {item_content}").startswith('"')) \
+                    or re.match(r"^[A-Za-z_][A-Za-z0-9_]*\s*:\s", item_content)\
                     or re.match(r"^[A-Za-z_][A-Za-z0-9_]*:$", item_content):
                 key, raw = _yaml_pair(item_content, "sequence item")
                 item = {key: _yaml_scalar(raw, f"item {key}")}
-                while index < len(lines) and lines[index][0] == indent + 2 \
-                        and not lines[index][1].startswith("- "):
+                while (index < len(lines) and lines[index][0] == indent + 2
+                       and not lines[index][1].startswith("- ")):
                     pair_key, pair_raw = _yaml_pair(lines[index][1],
                                                     "sequence item pair")
                     if pair_raw is None:
-                        raise ToolError(
-                            "format_parse",
-                            f"bare key {pair_key} in sequence item")
+                        raise ToolError("format_parse",
+                                        f"bare key {pair_key} in sequence item")
                     item[pair_key] = _yaml_scalar(pair_raw, f"item {pair_key}")
                     index += 1
                 value.append(item)
@@ -339,8 +237,7 @@ def _yaml_value(lines, index, indent, is_sequence=False):
             raise ToolError("format_parse", "bare '-' sequence marker")
         if is_sequence:
             raise ToolError("format_parse",
-                            f"mapping line {content[:10]!r} in a sequence "
-                            "block")
+                            f"mapping line {content[:10]!r} in a sequence block")
         key, raw_value = _yaml_pair(content, "mapping line")
         if raw_value is None:
             child_indent = _next_indent(lines, index + 1, indent)
@@ -367,21 +264,17 @@ def _yaml_document(text):
     return value
 
 
-# --------------------------------------------------- csv (flat requests) --
+# --- CSV (flat requests) ____________
 
 def _csv_document(text):
-    """One flat request per document: header row with valid keys, exactly
-    one data row; the csv module handles quoted commas in question
-    text. Nested values (inline stores) belong in json/xml/yaml/toml."""
     rows = [row for row in csv.reader(io.StringIO(text))
             if any(cell.strip() for cell in row)]
     if not rows:
         raise ToolError("format_parse", "empty csv request")
     if len(rows) != 2:
-        raise ToolError(
-            "format_parse",
-            f"csv requests carry a header row + exactly ONE data row, "
-            f"got {len(rows)} rows")
+        raise ToolError("format_parse",
+                        f"csv requests carry a header row + exactly ONE data row, "
+                        f"got {len(rows)} rows")
     header = [cell.strip() for cell in rows[0]]
     for name in header:
         if not name or not _TXT_KEY_RE.match(name):
@@ -389,10 +282,9 @@ def _csv_document(text):
                             f"invalid csv header key: {name!r}")
     data = [cell.strip() for cell in rows[1]]
     if len(data) != len(header):
-        raise ToolError(
-            "format_parse",
-            f"csv data row has {len(data)} cells, header has "
-            f"{len(header)}")
+        raise ToolError("format_parse",
+                        f"csv data row has {len(data)} cells, header has "
+                        f"{len(header)}")
     document = {}
     for key, value in zip(header, data):
         if key in document:
@@ -401,12 +293,22 @@ def _csv_document(text):
     return document
 
 
-# ------------------------------------------- toml (tomllib-gated, subset) --
+# --- TOML emission support (subset) --
+
+def _toml_scalar(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        raise ToolError("render_error", "toml emits no float fields here")
+    if value is None:
+        raise ToolError("render_error", "toml has no null; use json")
+    return json.dumps(value)
+
 
 def render_toml(value):
-    """Deterministic TOML emission for the tool document shapes:
-    key = value pairs first, then inline scalar arrays, then
-    [[key]] array-of-tables / [key] sub-tables for nested units."""
+    """Deterministic TOML emission for tool document shapes."""
     if isinstance(value, list):
         return render_toml({"addresses": value})
     if not isinstance(value, dict):
@@ -431,10 +333,9 @@ def render_toml(value):
         rendered.append(f"[{key}]")
         for sub_key, sub in entries.items():
             if isinstance(sub, (dict, list)):
-                raise ToolError(
-                    "render_error",
-                    f"toml sub-table {key}.{sub_key} nesting is not used "
-                    "by the tool document shapes")
+                raise ToolError("render_error",
+                                f"toml sub-table {key}.{sub_key} nesting is not used "
+                                "by the tool document shapes")
             rendered.append(f"{sub_key} = {_toml_scalar(sub)}")
     for key, entries in array_tables:
         for entry in entries:
@@ -445,19 +346,7 @@ def render_toml(value):
     return "\n".join(rendered) + "\n"
 
 
-def _toml_scalar(value):
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if isinstance(value, int):
-        return str(value)
-    if isinstance(value, float):
-        raise ToolError("render_error", "toml emits no float fields here")
-    if value is None:
-        raise ToolError("render_error", "toml has no null; use json")
-    return json.dumps(value)
-
-
-# ------------------------------------------------------------- renderers ---
+# --- Renderers ______________________
 
 def render_json(value):
     return json.dumps(value)
@@ -551,8 +440,7 @@ def render_txt(value):
 
 def render_csv(value):
     """csv responses carry tabular data only: list -> address rows
-    (explicit `format: csv`), errors -> code/message rows; serve and
-    inspect have no row shape, so they refuse honestly."""
+    (explicit `format: csv` only), errors -> code/message rows."""
     if isinstance(value, dict) and "error" in value:
         buffer = io.StringIO()
         writer = csv.writer(buffer, lineterminator="\n")
@@ -571,24 +459,20 @@ def render_csv(value):
         for entry in value:
             writer.writerow([entry])
         return buffer.getvalue().rstrip("\n")
-    raise ToolError(
-        "render_error",
-        "csv responses are address rows or error rows only; serve/inspect "
-        "read back as json/xml/yaml/toml/txt")
+    raise ToolError("render_error",
+                    "csv responses are address rows or error rows only; "
+                    "serve/inspect read back as json/xml/yaml/toml/txt")
 
 
 def render_request(doc, fmt):
-    """Serialize a request document in the given format (the inverse of
-    parse_request). txt/csv requests are flat - inline unit stores need
-    json/xml/yaml/toml."""
+    """Serialize a request document in the given format (inverse of parse)."""
     if fmt == "txt":
         lines = []
         for key, value in doc.items():
             if isinstance(value, (dict, list)):
-                raise ToolError(
-                    "invalid_format",
-                    f"txt requests cannot carry nested values ({key}); "
-                    "use json, xml, yaml, or toml")
+                raise ToolError("invalid_format",
+                                f"txt requests cannot carry nested values ({key}); "
+                                "use json, xml, yaml, or toml")
             lines.append(f"{key} {value}")
         return "\n".join(lines)
     if fmt == "xml":
@@ -598,10 +482,9 @@ def render_request(doc, fmt):
     if fmt == "csv":
         for key, value in doc.items():
             if isinstance(value, (dict, list)):
-                raise ToolError(
-                    "invalid_format",
-                    f"csv requests are flat; nested value in {key} - "
-                    "use json, xml, yaml, or toml")
+                raise ToolError("invalid_format",
+                                f"csv requests are flat; nested value in {key} - "
+                                "use json, xml, yaml, or toml")
         buffer = io.StringIO()
         writer = csv.writer(buffer, lineterminator="\n")
         writer.writerow(list(doc.keys()))
@@ -628,83 +511,13 @@ def render(value, fmt):
     raise ToolError("invalid_format", f"unknown response format: {fmt}")
 
 
-# ----------------------------------------------------------------- store ---
+# --- Store loading __________________
 
-def tool_schema(style="openai"):
-    """The function-calling tool definition that binds this CLI:
-    openai (tool object), anthropic (tool_use), or jsonschema (bare
-    parameter schema). Ladder ops stay out of the enum; their
-    unsupported_op behavior is in the description, per DESIGN 6.2."""
-    if style not in ("openai", "anthropic", "jsonschema"):
-        raise ToolError("invalid_format",
-                        f"unknown schema style: {style}")
-    parameters = {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {
-            "op": {
-                "type": "string",
-                "enum": list(SUPPORTED_OPS),
-                "description": "serve/list/inspect (flat-store reference)",
-            },
-            "question": {
-                "type": "string",
-                "description": "serve only: the task query, one line",
-            },
-            "budget": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "serve only: WORD budget (rule R4), "
-                               "never tokens",
-            },
-            "store": {
-                "oneOf": [
-                    {"type": "string",
-                     "description": "path to an asm_input.txt-format store"},
-                    {"type": "array",
-                     "items": {
-                         "type": "object",
-                         "required": ["address", "text"],
-                         "properties": {
-                             "address": {"type": "string"},
-                             "text": {"type": "string"},
-                         },
-                     }},
-                ],
-                "description": "the addressed corpus: file path or inline "
-                               "units {address, text}",
-            },
-            "address": {
-                "type": "string",
-                "description": "inspect only: stable unit ID (section 6.1)",
-            },
-            "format": {
-                "type": "string",
-                "enum": ["json", "xml", "yaml", "toml", "csv", "txt"],
-                "description": "response format; default echoes the "
-                               "request format (json for csv)",
-            },
-        },
-        "required": ["op"],
-    }
-    if style == "openai":
-        return {"type": "function",
-                "function": {"name": TOOL_NAME,
-                             "description": TOOL_DESCRIPTION,
-                             "parameters": parameters}}
-    if style == "anthropic":
-        return {"name": TOOL_NAME,
-                "description": TOOL_DESCRIPTION,
-                "input_schema": parameters}
-    return parameters
-
-
-def load_fragments(request, input_flag):
+def load_fragments(request, input_flag=None):
     """Store = inline unit list, or a path to asm_input.txt-format text
     (line 1 = question, line 2 = default budget, then address<TAB>text).
     Returns fragments only: question/budget must come from the REQUEST,
-    never from the store, so identical requests serve identically on any
-    store."""
+    never from the store, so identical requests serve identically on any store."""
     store = input_flag if input_flag is not None else request.get("store")
     if store is None:
         raise ToolError("no_store",
@@ -717,6 +530,7 @@ def load_fragments(request, input_flag):
                     or "text" not in unit:
                 raise ToolError("invalid_store",
                                 "inline store units need address+text keys")
+            from asm.core.asm import Fragment
             fragments.append(Fragment(str(unit["address"]),
                                       str(unit["text"])))
         return fragments
@@ -726,10 +540,9 @@ def load_fragments(request, input_flag):
         raw = Path(store).read_text(encoding="utf-8")
     except OSError:
         raise ToolError("store_not_found",
-                        f"store file not found or unreadable: {store}") \
-            from None
+                        f"store file not found or unreadable: {store}") from None
     fragments = []
-    for line in raw.split("\n")[2:]:
+    for line in raw.split("\n")[2:]:  # skip question line + budget line
         line = line.rstrip("\r")
         if not line or "\t" not in line:
             continue
@@ -738,7 +551,7 @@ def load_fragments(request, input_flag):
     return fragments
 
 
-# ------------------------------------------------------------- dispatch ---
+# --- Coerce budget __________________
 
 def _coerce_budget(raw):
     if isinstance(raw, bool):
@@ -759,27 +572,24 @@ def _coerce_budget(raw):
     return budget
 
 
-def dispatch(request, request_fmt, input_flag=None):
-    """Validate + execute one request; returns (response_value, fmt).
-    csv requests answer in json by default (csv is request-only; rows
-    exist for the list/error shapes), so identical csv and json requests
-    produce identical served contexts."""
+# --- Dispatch ______________________
+
+def dispatch(request, request_fmt=None):
+    """Validate + execute one request; returns (response_value, response_fmt)."""
     response_fmt = request.get("format") or (
         request_fmt if request_fmt != "csv" else "json")
-    if response_fmt not in RESPONSE_FORMATS:
+    if response_fmt not in ("json", "xml", "yaml", "toml", "csv", "txt"):
         raise ToolError("invalid_format",
                         f"unknown response format: {response_fmt}")
 
     op = request.get("op")
     if not isinstance(op, str):
         raise ToolError("invalid_op", f"op must be a string, got {op!r}")
-    if op not in SUPPORTED_OPS:
+    if op not in ("serve", "list", "inspect"):
         raise ToolError(
             "unsupported_op",
-            f"op {op!r} is not available in the flat-store reference "
-            f"implementation; supported ops: {', '.join(SUPPORTED_OPS)}; "
-            "ladder ops (expand, list-of-ladder) are queued in WORKQUEUE "
-            "T1 until the abstraction ladder exists")
+            f"op {op!r} is not available; supported ops: serve, list, inspect; "
+            "ladder ops (expand) are queued for future work")
 
     if op == "serve":
         question = request.get("question")
@@ -787,19 +597,21 @@ def dispatch(request, request_fmt, input_flag=None):
             raise ToolError("missing_question",
                             "serve needs a non-empty question string")
         budget = _coerce_budget(request.get("budget"))
-        fragments = load_fragments(request, input_flag)
+        fragments = load_fragments(request, None)
+        from asm.core.asm import ASM
         value = ASM().run(question, fragments, budget)
     elif op == "list":
-        fragments = load_fragments(request, input_flag)
+        fragments = load_fragments(request, None)
         value = [fragment.address for fragment in fragments]
     else:  # inspect
         address = request.get("address")
         if not isinstance(address, str) or not address:
             raise ToolError("missing_address",
                             "inspect needs an address string (section 6.1)")
-        fragments = load_fragments(request, input_flag)
+        fragments = load_fragments(request, None)
         for fragment in fragments:
             if fragment.address == address:
+                from asm.core.asm import WORD_RE
                 value = {
                     "address": address,
                     "text": fragment.text,
@@ -809,16 +621,15 @@ def dispatch(request, request_fmt, input_flag=None):
         else:
             raise ToolError(
                 "address_not_found",
-                f"no stored unit resolves address {address!r}; per section "
-                "6.2 report the gap, do not guess")
+                f"no stored unit resolves address {address!r}; "
+                "per design 6.2 report the gap, do not guess")
     return value, response_fmt
 
 
+# --- Parse response ________________
+
 def parse_response(text, fmt):
-    """Parse a structured response document back to Python (the inverse
-    of render for json/xml/yaml/toml/csv; txt responses are display text
-    and are not machine-parsed). toml top-level arrays read back under
-    the documented `addresses` key; csv reads back header-sized rows."""
+    """Parse a structured response document back to Python."""
     if fmt == "txt":
         raise ToolError("parse_response",
                         "txt responses are display text, not machine-parsed")
@@ -827,11 +638,15 @@ def parse_response(text, fmt):
     if fmt == "yaml":
         return _yaml_document(text)
     if fmt == "toml":
-        if not _HAS_TOMLLIB:
+        try:
+            import tomllib
+        except ImportError:
             raise ToolError("unsupported_runtime",
                             "toml responses need tomllib (Python 3.11+)")
         return tomllib.loads(text)
     if fmt == "csv":
+        import csv
+        import io
         rows = [row for row in csv.reader(io.StringIO(text))
                 if any(cell.strip() for cell in row)]
         header = [cell.strip() for cell in rows[0]]
@@ -841,58 +656,31 @@ def parse_response(text, fmt):
             return {"error": {"code": rows[1][0].strip(),
                               "message": rows[1][1].strip()}}
         raise ToolError("parse_response",
-                        f"csv parse handles address or code/message "
-                        f"columns, got {header}")
+                        f"csv parse handles address or code/message columns, got {header}")
     root = ET.fromstring(text)
     if root.tag != "asm_response":
         raise ToolError("parse_response", f"unexpected xml root: {root.tag}")
     return _xml_to_obj(root)
 
 
-# ----------------------------------------------------------------- CLI ---
-
-def build_flag_request(request, args):
-    """CLI flags override document fields, only where explicitly given."""
-    if args.op:
-        request["op"] = args.op
-    if args.question is not None:
-        request["question"] = args.question
-    if args.address is not None:
-        request["address"] = args.address
-    if args.budget is not None:
-        request["budget"] = args.budget
-    if args.store is not None:
-        request["store"] = args.store
-    if args.format:
-        request["format"] = args.format
-    return request
-
-
-def _emit_error(err, fmt):
-    print(render(error_document(err.code, err.message), fmt))
-    return 1
-
+# --- CLI main (minimal) ___________
 
 def main(argv=None):
+    """Minimal CLI entry point for the ASM tool interface."""
     parser = argparse.ArgumentParser(
-        description="ASM LLM tool interface (DESIGN section 6; WORKQUEUE T1)",
-        epilog="Formats: json xml yaml toml csv txt. Ops: serve list "
-               "inspect. --schema emits the function-calling tool "
-               "definition. Exit 0 ok; exit 1 prints the structured "
-               "error document.")
-    parser.add_argument("--request",
-                        help="request document file (format detected)")
-    parser.add_argument("--op", choices=SUPPORTED_OPS + ("expand",),
+        description="ASM LLM tool interface (deploy package)",
+        epilog="Formats: json xml yaml toml csv txt. Ops: serve list inspect. "
+               "--schema emits the function-calling tool definition. "
+               "Exit 0 ok; exit 1 prints the structured error document.")
+    parser.add_argument("--request", help="request document file (format detected)")
+    parser.add_argument("--op", choices=["serve", "list", "inspect"],
                         help="operation for flag-built requests")
     parser.add_argument("--question")
     parser.add_argument("--budget", type=int)
     parser.add_argument("--address")
     parser.add_argument("--store", help="store path (inline or file)")
-    parser.add_argument("--input", dest="store", help="store path alias")
-    parser.add_argument("--format", choices=RESPONSE_FORMATS,
-                        help="response format override ONLY (default = "
-                             "request format; json for csv/flag-built "
-                             "requests); the request format is sniffed")
+    parser.add_argument("--format", choices=["json", "xml", "yaml", "toml", "csv", "txt"],
+                        help="response format override ONLY (default = request format; json for csv/flag-built requests); the request format is sniffed")
     parser.add_argument(
         "--schema", nargs="?", const="openai",
         choices=("openai", "anthropic", "jsonschema"),
@@ -902,19 +690,19 @@ def main(argv=None):
 
     if args.schema:
         try:
+            from asm.schemas import tool_schema
             print(render(tool_schema(args.schema), "json"))
             return 0
         except ToolError as err:
-            return _emit_error(err, "json")
+            print(f"{err.code}: {err.message}")
+            return 1
 
     request_fmt = args.format or "json"
     if args.request:
         try:
             text = Path(args.request).read_text(encoding="utf-8")
-            # NOTE: --format is the response-format override only; the
-            # request format is always sniffed from the document itself.
             request_fmt = detect_format(text)
-            request = parse_request(text, request_fmt)
+            request = parse_format(text, request_fmt)
         except ToolError as err:
             return _emit_error(err, args.format or "json")
     elif args.op:
@@ -929,11 +717,22 @@ def main(argv=None):
                 "json")
         try:
             request_fmt = detect_format(text)
-            request = parse_request(text, request_fmt)
+            request = parse_format(text, request_fmt)
         except ToolError as err:
             return _emit_error(err, args.format or "json")
 
-    request = build_flag_request(request, args)
+    # Build flag overrides
+    if args.op:
+        request["op"] = args.op
+    if args.question is not None:
+        request["question"] = args.question
+    if args.address is not None:
+        request["address"] = args.address
+    if args.budget is not None:
+        request["budget"] = args.budget
+    if args.store is not None:
+        request["store"] = args.store
+
     try:
         value, response_fmt = dispatch(request, request_fmt,
                                        input_flag=None)
@@ -945,6 +744,11 @@ def main(argv=None):
     except ToolError as err:
         return _emit_error(err, response_fmt)
     return 0
+
+
+def _emit_error(err, fmt):
+    print(render(error_document(err.code, err.message), fmt))
+    return 1
 
 
 if __name__ == "__main__":
